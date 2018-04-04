@@ -1,2 +1,1 @@
-# FluidSim
-A fluid sim for CIS 563
+# smoke563
