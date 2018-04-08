@@ -4,9 +4,9 @@ project(partio-download NONE)
 
 include(ExternalProject)
 ExternalProject_Add(partio-download
-                    GIT_REPOSITORY;https://github.com/wdas/partio.git;GIT_TAG;v1.1.0;UPDATE_DISCONNECTED;1;PATCH_COMMAND;/usr/bin/git;apply;/Users/joshwolper/Desktop/CIS563_SmokeBaseCode/Deps/partio.patch
-                    SOURCE_DIR          "/Users/joshwolper/Desktop/CIS563_SmokeBaseCode/cmake-build-debug/partio-src"
-                    BINARY_DIR          "/Users/joshwolper/Desktop/CIS563_SmokeBaseCode/cmake-build-debug/partio-build"
+                    GIT_REPOSITORY;https://github.com/wdas/partio.git;GIT_TAG;v1.1.0;UPDATE_DISCONNECTED;1;PATCH_COMMAND;C:/Program Files/Git/cmd/git.exe;apply;D:/Documents/Github/FluidSim/Deps/partio.patch
+                    SOURCE_DIR          "D:/Documents/Github/FluidSim/cmake-build-debug/partio-src"
+                    BINARY_DIR          "D:/Documents/Github/FluidSim/cmake-build-debug/partio-build"
                     CONFIGURE_COMMAND   ""
                     BUILD_COMMAND       ""
                     INSTALL_COMMAND     ""

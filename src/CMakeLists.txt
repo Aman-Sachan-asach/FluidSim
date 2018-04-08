@@ -1,5 +1,7 @@
 find_package(OpenGL REQUIRED)
 find_package(GLUT REQUIRED)
+
+# Find eigen in system directory and treat it as an interface library
 find_package(Eigen3 REQUIRED)
 add_library(eigen INTERFACE IMPORTED)
 

@@ -7,7 +7,6 @@
 
 namespace mmc
 {
-
     /*! \brief High precision clock for timing events. 
       
       This class is implemented on top of the Timer class.  Usually it is
