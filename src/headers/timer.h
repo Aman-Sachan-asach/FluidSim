@@ -1,9 +1,6 @@
-
-#ifndef __MMC_TIMER_H__
-#define __MMC_TIMER_H__
+#pragma once
 
 #ifdef WIN32
-
 /*! win32 implementation -- use OS-provided high-precision timer */
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN
@@ -34,7 +31,6 @@ typedef clock_t MMC_TIME_TYPE;
 
 namespace mmc
 {
-
     /*! \brief Class for timing application events.
 
      Only one of these is needed per application. */
@@ -64,11 +60,11 @@ namespace mmc
         inline double getInvFreq () const;
 
     private:
-        MMC_TIME_TYPE freq_;
         MMC_TIME_TYPE start_;
-        MMC_TIME_TYPE now_;
         MMC_TIME_TYPE last_;
+        MMC_TIME_TYPE now_;
         MMC_TIME_TYPE elapsed_;
+        MMC_TIME_TYPE freq_;
         double invFreq_;
     };
 
@@ -145,8 +141,5 @@ namespace mmc
     {
         return invFreq_;
     }
-
 } // namespace mmc
-
-#endif // __MMC_TIMER_H__
 

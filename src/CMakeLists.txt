@@ -8,9 +8,6 @@ set(SOURCE_FILES sources/main.cpp
 		 headers/smoke_sim.h
 		 sources/mac_grid.cpp
 		 headers/mac_grid.h
-		 sources/vec.cpp
-		 headers/vec.h
-		 headers/matrix.h
 		 sources/grid_data.cpp
 		 headers/grid_data.h
 		 headers/grid_data_matrix.h
@@ -21,10 +18,10 @@ set(SOURCE_FILES sources/main.cpp
 		 headers/timer.h
 		 sources/fps.cpp
 		 headers/fps.h
-		 sources/constants.cpp
-		 headers/constants.h
-		 headers/basic_math.h
-		 headers/open_gl_headers.h)
+		 headers/globals.h
+		 external/matrix.h
+		 external/vec.h
+		 external/vec.cpp)
 
 add_SMOKE_executable(smoke ${SOURCE_FILES})
 include_directories( ${OPENGL_INCLUDE_DIR}  ${GLUT_INCLUDE_DIRS} )

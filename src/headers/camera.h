@@ -1,11 +1,13 @@
-
-
-#ifndef camera_H_
-#define camera_H_
-
-#include "open_gl_headers.h" 
-#include "vec.h"
-#include "matrix.h"
+#pragma once
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <time.h> 
+#include "../external/vec.h"
+#include "../external/matrix.h"
+#include "globals.h" 
 
 class Camera
 {
@@ -97,5 +99,3 @@ public:
    static float dfltVfov, dfltAspect, dfltNear, dfltFar; 
    static float dfltSpeed, dfltTurnRate;
 };
-
-#endif

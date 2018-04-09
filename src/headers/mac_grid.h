@@ -1,18 +1,27 @@
-#ifndef MACGrid_H_
-#define MACGrid_H_
+#pragma once
 
-#pragma warning(disable: 4244 4267 4996)
+#include <Partio.h>
+#include <math.h>
+#include <map>
+#include <stdio.h>
+#include <cstdlib>
+#include <fstream> 
 
-#include "open_gl_headers.h" 
-#include "vec.h"
+#include "../external/vec.h"
+#include "globals.h"
+
 #include "grid_data.h"
 #include "grid_data_matrix.h" 
-#include <Partio.h>
+#include "camera.h"
+#include "custom_output.h" 
+
+#undef max
+#undef min 
+
 class Camera;
 
 class MACGrid
 {
-
 public:
 	MACGrid();
 	~MACGrid();
@@ -31,7 +40,6 @@ public:
 	void advectRenderingParticles(double dt);
 
 protected:
-
 	// Setup
 	void initialize();
 
@@ -110,5 +118,3 @@ public:
 	void saveParticle(std::string filename);
 	void saveDensity(std::string filename);
 };
-
-#endif

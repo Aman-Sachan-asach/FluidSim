@@ -2,12 +2,10 @@
 #include <stdio.h>
 #include <cmath>
 
-#include "../headers/open_gl_headers.h" 
-#include "../headers/basic_math.h"
+#include "../headers/globals.h"
 #include "../headers/smoke_sim.h"
 #include "../headers/camera.h"
-#include "../headers/fps.h"
-#include "../headers/constants.h" 
+#include "../headers/fps.h" 
 
 // Geometry and whatnot
 SmokeSim theSmokeSim;

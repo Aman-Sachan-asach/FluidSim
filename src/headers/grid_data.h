@@ -1,11 +1,8 @@
+#pragma once
 
-#ifndef GridData_H_
-#define GridData_H_
-
-#pragma warning(disable: 4244 4267 4996)
 #include <vector> 
-#include "vec.h"
-#include "constants.h" 
+#include "../external/vec.h"
+#include "globals.h" 
 
 // GridData is capable of storing any data in a grid
 // Columns are indexed with i and increase with increasing x
@@ -87,5 +84,3 @@ public:
    virtual const double operator()(int i, int j, int k) const; 
    virtual vec3 worldToSelf(const vec3& pt) const;
 };
-
-#endif

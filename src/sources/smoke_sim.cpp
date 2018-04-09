@@ -1,11 +1,4 @@
-#pragma once
-
 #include "../headers/smoke_sim.h"
-#include "../headers/constants.h" 
-#include "../headers/open_gl_headers.h" 
-#include "../headers/custom_output.h" 
-#include "../headers/basic_math.h"
-#include <fstream>
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "../external/STB/stb_image_write.h"
@@ -56,7 +49,6 @@ void SmokeSim::step()
 
 	// Step4: Advect rendering particles
 	mGrid.advectRenderingParticles(dt);
-
 
 	mTotalFrameNum++;
 }

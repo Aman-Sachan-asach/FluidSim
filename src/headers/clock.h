@@ -1,13 +1,8 @@
-
-
-#ifndef __MMC_CLOCK_H__
-#define __MMC_CLOCK_H__
-
+#pragma once
 #include "timer.h"
 
 namespace mmc
 {
-
     /*! \brief High precision clock for timing events. 
       
       This class is implemented on top of the Timer class.  Usually it is
@@ -110,6 +105,3 @@ namespace mmc
     }
 
 } // namespace mmc
-
-#endif // __MMC_CLOCK_H__
-

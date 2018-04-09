@@ -1,11 +1,13 @@
+#pragma once
 
-#ifndef smokeSim_H_
-#define smokeSim_H_
-
-#include "mac_grid.h"
+#include <fstream>
 #include <Partio.h>
+#include "mac_grid.h"
+#include "custom_output.h" 
+#include "globals.h"
 
 class Camera;
+
 class SmokeSim
 {
 public:
@@ -36,5 +38,3 @@ protected:
 	int recordWidth;
 	int recordHeight;
 };
-
-#endif

@@ -1,9 +1,9 @@
-
-#ifndef __MMC_FPS_H__
-#define __MMC_FPS_H__
+#pragma once
 
 #include <vector>
 #include <string.h>
+#include "clock.h"
+
 namespace mmc
 {
     class Clock;
@@ -44,5 +44,3 @@ namespace mmc
     };
 
 } // namespace mmc
-
-#endif // __MMC_FPS_H__

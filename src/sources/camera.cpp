@@ -1,12 +1,3 @@
-#include <assert.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <time.h>
-#include "../headers/open_gl_headers.h" 
-#include "../headers/basic_math.h" 
-
 #include "../headers/camera.h"
 
 vec3  Camera::dfltEye(5.0, 15.0, -25.0);

@@ -1,7 +1,4 @@
-
-
 #include "../headers/fps.h"
-#include "../headers/clock.h"
 
 using namespace mmc;
 

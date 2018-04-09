@@ -62,7 +62,9 @@
 //
 
 // Disable this warning: http://msdn.microsoft.com/en-us/library/sa28fef8%28v=vs.80%29.aspx
+#ifndef __GNUC__
 #pragma warning( disable : 4290 ) 
+#endif
 
 #ifndef __cplusplus
 #error Must use C++ for the type matrix.
