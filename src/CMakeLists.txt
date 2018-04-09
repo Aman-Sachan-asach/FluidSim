@@ -26,9 +26,9 @@ set(SOURCE_FILES sources/main.cpp
 		 headers/basic_math.h
 		 headers/open_gl_headers.h)
 
-add_SMOKE_executable(SMOKE ${SOURCE_FILES})
+add_SMOKE_executable(smoke ${SOURCE_FILES})
 include_directories( ${OPENGL_INCLUDE_DIR}  ${GLUT_INCLUDE_DIRS} )
-target_link_libraries(SMOKE ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} )
-target_include_directories(SMOKE SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR})
-target_link_libraries(SMOKE eigen)
-target_link_libraries(SMOKE partio)
+target_link_libraries(smoke ${OPENGL_LIBRARIES} ${GLUT_LIBRARIES} )
+target_include_directories(smoke SYSTEM PUBLIC ${EIGEN3_INCLUDE_DIR})
+target_link_libraries(smoke eigen)
+target_link_libraries(smoke partio)
