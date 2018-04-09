@@ -30,10 +30,10 @@ protected:
 
 protected:
 	MACGrid mGrid;
-	bool mRecordEnabled;
-	int mFrameNum;
-	int mTotalFrameNum; 
 	
+	int mFrameNum;
+	int mTotalFrameNum;
+	bool mRecordEnabled;
 	
 	int recordWidth;
 	int recordHeight;
