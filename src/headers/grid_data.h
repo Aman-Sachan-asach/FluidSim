@@ -18,7 +18,7 @@
 class GridData
 {
 public:
-   GridData() : mDfltValue(0.0), mMax(0.0,0.0,0.0) {};
+   GridData();
    GridData(const GridData& orig) : mDfltValue(orig.mDfltValue), mMax(orig.mMax), mData(orig.mData) {};
    virtual ~GridData() {};
 

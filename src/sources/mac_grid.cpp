@@ -211,24 +211,175 @@ void MACGrid::addExternalForces(double dt)
 
 void MACGrid::project(double dt)
 {
+	/*
+		Resource: Section 4.3 on page 29 of Bridson's 2007 SIGGRAPH fluid course notes.
+		Resource: Fig 4.1 on page 34 of Bridson's 2007 SIGGRAPH fluid course notes.
+
+		The projection step is used to calculate the new velocity at every grid cell (u^(n+1)) and 
+		store an interpolated value at every face of the grid cell.
+		This velocity that we compute for every grid cell is supposed to be divergence free to maintain
+		the incompressibility of the fluid (which is an assumption we use to heavily simply the navier 
+		stokes equations).
+
+		The new velocity u^(n+1) is calculated using 'pressure projection' which we solve using the 
+		Conjugate Gradient Algorithm:
+			Solve Ap = d for pressure, where p is pressure, 
+											 A is the matrix of the divergence of the gradient,
+										 and d is the divergence
+
+			MAp = Md, where M is very close to the inverse of A and so MA is basically an identity matrix
+			Therefore, p = Md; (This is the PCG (preconditionedConjugateGradient) method)
+
+			Construct d
+			Solve for p
+
+		This pressure is used to get the gradient of p which is used to calculate the new velocity u^(n+1)
+			Subtract pressure from our velocity and save in target
+	*/
+
 	// TODO Section
-	// Solve Ax = b for pressure, where x is pressure
-	// 1. Contruct b
-	// 2. Construct A 
-	// 3. Solve for p
-	// Subtract pressure from our velocity and save in target
-	// STARTED.
+	const double constant = dt / (theAirDensity * (theCellSize * theCellSize * theCellSize)); // changed from square to cube
 
-	// TODO: Get rid of these 3 lines after you implement yours
-	target.mU = mU;
-	target.mV = mV;
-	target.mW = mW;
+	GridData p = GridData();
+	GridData d = GridData();
 
-	// TODO: Your code is here. It solves for a pressure field and modifies target.mU,mV,mW for all faces.
+	// Construct d
+	FOR_EACH_CELL 
+	{
+		// Construct the vector of divergences d:
+		double vel_LowX = mU(i,j,k);
+		double vel_HighX = mU(i+1,j,k);
+		double vel_LowY = mV(i,j,k);
+		double vel_HighY = mV(i,j+1,k);
+		double vel_LowZ = mW(i,j,k);
+		double vel_HighZ = mW(i,j,k+1);
+
+		// Use 0 for solid boundary velocities:
+		if (i == 0)
+		{
+			vel_LowX = 0;
+		}
+		if (j == 0)
+		{
+			vel_LowY = 0;
+		}
+		if (k == 0) 
+		{
+			vel_LowZ = 0;
+		}
+
+		if (i+1 == theDim[MACGrid::X])
+		{
+			vel_HighX = 0;
+		} 
+		if (j+1 == theDim[MACGrid::Y])
+		{
+			vel_HighY = 0;
+		}
+		if (k+1 == theDim[MACGrid::Z]) 
+		{
+			vel_HighZ = 0;
+		}
+
+		double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / theCellSize;
+		d(i,j,k) = -divergence; //d(currentCell) = -divergence;
+	}
+
+	// Use PCG method to calculate p
+	preconditionedConjugateGradient(AMatrix, p, d, 150, 0.01);
+
+	FOR_EACH_CELL 
+	{
+		p(i,j,k) *= constant;
+		// Save pressure values
+		target.mP(i,j,k) = p(i,j,k);
+	}
+
+	// Calculate the pressure gradient, use it to calculate the new velocity u^(n+1) and store 
+	// this new velocity at the grid cell faces
+	FOR_EACH_FACE 
+	{
+		// Initialize the pressure values to 0.
+		double pLowX  = 0.0;
+		double pHighX = 0.0;
+		double pLowY  = 0.0;
+		double pHighY = 0.0;
+		double pLowZ  = 0.0;
+		double pHighZ = 0.0;
+
+		const double solidBoundaryConstant = (theAirDensity * theCellSize * theCellSize) / dt; //squared instead of just theCellSize
+		const double deltaT_By_Density = dt / theAirDensity; // Bottom of page 27 in course notes
+		
+		if (isValidFace(MACGrid::X, i, j, k)) 
+		{
+			if (i == 0) 
+			{
+				pLowX  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+				pHighX = p(i,j,k);
+			}
+			else if (i >= theDim[MACGrid::X])
+			{
+				pLowX  = p(i-1,j,k);
+				pHighX = p(i-1,j,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
+			}
+			else
+			{
+				pLowX  = p(i-1,j,k);
+				pHighX = p(i,j,k);
+			}
+		}
+		if (isValidFace(MACGrid::Y, i, j, k)) 
+		{
+			if (j == 0) 
+			{
+				pLowY  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+				pHighY = p(i,j,k);
+			}
+			else if (j >= theDim[MACGrid::Y])
+			{
+				pLowY  = p(i,j-1,k);
+				pHighY = p(i,j-1,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
+			}
+			else
+			{
+				pLowY  = p(i,j-1,k);
+				pHighY = p(i,j,k);
+			}
+		}
+		if (isValidFace(MACGrid::Z, i, j, k)) 
+		{
+			if (k == 0) 
+			{
+				pLowZ  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+				pHighZ = p(i,j,k);
+			}
+			else if (k >= theDim[MACGrid::Z])
+			{
+				pLowZ  = p(i,j,k-1);
+				pHighZ = p(i,j,k-1) + solidBoundaryConstant * (mU(i,j,k) - 0);
+			}
+			else
+			{
+				pLowZ  = p(i,j,k-1);
+				pHighZ = p(i,j,k);
+			}
+		}
 
 
-
-
+		// Update the velocities:
+		if (isValidFace(MACGrid::X, i, j, k)) 
+		{
+			target.mU(i,j,k) = mU(i,j,k) - deltaT_By_Density * (pHighX - pLowX) / theCellSize;
+		}
+		if (isValidFace(MACGrid::Y, i, j, k)) 
+		{
+			target.mV(i,j,k) = mV(i,j,k) - deltaT_By_Density * (pHighY - pLowY) / theCellSize;
+		}
+		if (isValidFace(MACGrid::Z, i, j, k)) 
+		{
+			target.mW(i,j,k) = mW(i,j,k) - deltaT_By_Density * (pHighZ - pLowZ) / theCellSize;
+		}
+	}
 
 	#ifdef _DEBUG
 	// Check border velocities:
@@ -309,13 +460,13 @@ void MACGrid::project(double dt)
 	FOR_EACH_CELL 
 	{
 		// Construct the vector of divergences d:
-		double velLowX = mU(i,j,k);
-		double velHighX = mU(i+1,j,k);
-		double velLowY = mV(i,j,k);
-		double velHighY = mV(i,j+1,k);
-		double velLowZ = mW(i,j,k);
-		double velHighZ = mW(i,j,k+1);
-		double divergence = ((velHighX - velLowX) + (velHighY - velLowY) + (velHighZ - velLowZ)) / theCellSize;
+		double vel_LowX = mU(i,j,k);
+		double vel_HighX = mU(i+1,j,k);
+		double vel_LowY = mV(i,j,k);
+		double vel_HighY = mV(i,j+1,k);
+		double vel_LowZ = mW(i,j,k);
+		double vel_HighZ = mW(i,j,k+1);
+		double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / theCellSize;
 		if (abs(divergence) > 0.02 ) 
 		{
 			PrintLine("WARNING: Divergent! ");
@@ -332,7 +483,8 @@ void MACGrid::project(double dt)
 
 void MACGrid::computeBouyancy(double dt)
 {
-	// TODO: Calculate bouyancy and store in target
+	// CHECK Section 
+	// Calculate bouyancy and store in target
 
 	// TODO: Get rid of this line after you implement yours
 	target.mV = mV;
@@ -348,7 +500,8 @@ void MACGrid::computeBouyancy(double dt)
 
 void MACGrid::computeVorticityConfinement(double dt)
 {
-	// TODO: Calculate vorticity confinement forces
+	// CHECK Section 
+	// Calculate vorticity confinement forces
 
 	// Apply the forces to the current velocity and store the result in target
 	// STARTED.
@@ -397,18 +550,6 @@ vec3 MACGrid::getRewoundPosition(const vec3 & currentPosition, const double dt)
 
 vec3 MACGrid::clipToGrid(const vec3& outsidePoint, const vec3& insidePoint) 
 {
-	/*
-	// OLD:
-	vec3 rewindPosition = outsidePoint;
-	if (rewindPosition[0] < 0) rewindPosition[0] = 0; // TEMP!
-	if (rewindPosition[1] < 0) rewindPosition[1] = 0; // TEMP!
-	if (rewindPosition[2] < 0) rewindPosition[2] = 0; // TEMP!
-	if (rewindPosition[0] > theDim[MACGrid::X]) rewindPosition[0] = theDim[MACGrid::X]; // TEMP!
-	if (rewindPosition[1] > theDim[MACGrid::Y]) rewindPosition[1] = theDim[MACGrid::Y]; // TEMP!
-	if (rewindPosition[2] > theDim[MACGrid::Z]) rewindPosition[2] = theDim[MACGrid::Z]; // TEMP!
-	return rewindPosition;
-	*/
-
 	vec3 clippedPoint = outsidePoint;
 
 	for (int i = 0; i < 3; i++) 
@@ -538,7 +679,7 @@ bool MACGrid::preconditionedConjugateGradient(const GridDataMatrix & A, GridData
 		PrintLine(r(i,j,k));
 	}
 	*/
-	GridData z; z.initialize();
+	GridData z = GridData();
 	applyPreconditioner(r, A, z); // Auxillary vector.
 	/*
 	PrintLine("z: ");
@@ -554,26 +695,24 @@ bool MACGrid::preconditionedConjugateGradient(const GridDataMatrix & A, GridData
 
 	for (int iteration = 0; iteration < maxIterations; iteration++) 
 	{
-		double rho = sigma; // According to TA. Here???
+		double rho = sigma;
 
 		apply(A, s, z); // z = applyA(s);
 
 		double alpha = rho/dotProduct(z, s);
 
-		GridData alphaTimesS; alphaTimesS.initialize();
+		GridData alphaTimesS = GridData();
 		multiply(alpha, s, alphaTimesS);
 		add(p, alphaTimesS, p);
-		//p += alpha * s;
 
-		GridData alphaTimesZ; alphaTimesZ.initialize();
+		GridData alphaTimesZ = GridData();
 		multiply(alpha, z, alphaTimesZ);
 		subtract(r, alphaTimesZ, r);
-		//r -= alpha * z;
 
 		if (maxMagnitude(r) <= tolerance) 
 		{
 			//PrintLine("PCG converged in " << (iteration + 1) << " iterations.");
-			return true; //return p;
+			return true;
 		}
 
 		applyPreconditioner(r, A, z); // z = applyPreconditioner(r);
@@ -582,15 +721,14 @@ bool MACGrid::preconditionedConjugateGradient(const GridDataMatrix & A, GridData
 
 		double beta = sigmaNew / rho;
 
-		GridData betaTimesS; betaTimesS.initialize();
+		GridData betaTimesS = GridData();
 		multiply(beta, s, betaTimesS);
 		add(z, betaTimesS, s);
-		//s = z + beta * s;
 
 		sigma = sigmaNew;
 	}
 
-	PrintLine( "PCG didn't converge!" );
+	PrintLine( "BAD pressure value generated because the PCG algorithm didn't converge." );
 	return false;
 }
 
@@ -624,8 +762,7 @@ void MACGrid::applyPreconditioner(const GridData & r, const GridDataMatrix & A, 
 {
 	// Resource: Fig 4.3 on page 37 of Bridson's 2007 SIGGRAPH fluid course notes.
 	// Solve Lq = r for q:
-	GridData q;
-	q.initialize();
+	GridData q = GridData();
 
 	FOR_EACH_CELL 
 	{
