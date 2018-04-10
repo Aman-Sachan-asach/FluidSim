@@ -57,7 +57,7 @@ inline void PrintLine (T const& X)
 }
 
 ////////////////////////////////////////////////////////////
-
+//Some compilers dont supply things like std::isNaN or std::log2
 namespace Globals
 {
 	inline vec4 Lerp(vec4 a, vec4 b, double t)
@@ -99,13 +99,11 @@ namespace Globals
 		return std::floor(n + 0.5);
 	}
 
-	// std::log2 is not avaiable in all compilers.
 	inline double log2(double n)
 	{
 		return std::log(n) / std::log(2.0);
 	}
 
-	// std::isnan is not avaiable in all compilers.
 	inline bool isNaN(double n)
 	{
 		return (n != n);

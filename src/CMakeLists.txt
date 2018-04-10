@@ -14,11 +14,9 @@ set( SOURCE_FILES sources/main.cpp
 				  sources/camera.cpp
 				  headers/camera.h
 
-				  headers/clock.h
 				  headers/timer.h
-				  headers/fps.h
 				  headers/globals.h
-				  
+
 				  external/matrix.h
 				  external/vec.h
 				  external/vec.cpp )

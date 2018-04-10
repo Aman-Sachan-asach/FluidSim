@@ -5,12 +5,12 @@
 #include "../headers/globals.h"
 #include "../headers/smoke_sim.h"
 #include "../headers/camera.h"
-#include "../headers/fps.h" 
+#include "../headers/timer.h" 
 
 // Geometry and whatnot
 SmokeSim theSmokeSim;
 Camera theCamera;
-mmc::FpsTracker theFpsTracker;
+FpsTracker theFpsTracker;
 
 // UI Helpers
 int lastX = 0, lastY = 0;

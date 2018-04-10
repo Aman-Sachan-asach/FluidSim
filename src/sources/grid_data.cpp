@@ -1,20 +1,13 @@
 #include "../headers/grid_data.h"
 
-GridData::GridData() :
-   mDfltValue(0.0), mMax(0.0,0.0,0.0)
-{
-}
+GridData::GridData() : mDfltValue(0.0), mMax(0.0,0.0,0.0)
+{}
 
-GridData::GridData(const GridData& orig) :
-   mDfltValue(orig.mDfltValue)
-{
-   mData = orig.mData;
-   mMax = orig.mMax;
-}
+GridData::GridData(const GridData& orig) : mDfltValue(orig.mDfltValue), mMax(orig.mMax), mData(orig.mData)
+{}
 
 GridData::~GridData() 
-{
-}
+{}
 
 std::vector<double>& GridData::data()
 {
@@ -27,6 +20,7 @@ GridData& GridData::operator=(const GridData& orig)
    {
       return *this;
    }
+
    mDfltValue = orig.mDfltValue;
    mData = orig.mData;
    mMax = orig.mMax;
@@ -45,16 +39,17 @@ void GridData::initialize(double dfltValue)
 
 double& GridData::operator()(int i, int j, int k)
 {
-   static double dflt = 0;
-   dflt = mDfltValue;  // HACK: Protect against setting the default value
+   static double dflt = mDfltValue;  // HACK: Protect against setting the default value
 
-   if (i< 0 || j<0 || k<0 || 
-       i > theDim[0]-1 || 
-       j > theDim[1]-1 || 
-       k > theDim[2]-1) return dflt;
+   if( i<0 || i > theDim[0]-1 || 
+       j<0 || j > theDim[1]-1 || 
+       k<0 || k > theDim[2]-1 ) 
+   {
+      return dflt;
+   }
 
-   int col = i;
-   int row = k*theDim[0];
+   int col   = i;
+   int row   = k*theDim[0];
    int stack = j*theDim[0]*theDim[2];
 
    return mData[col+row+stack];
