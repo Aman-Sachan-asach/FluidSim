@@ -8,9 +8,9 @@
 #include "../headers/timer.h" 
 
 // Geometry and whatnot
-SmokeSim theSmokeSim;
-Camera theCamera;
-FpsTracker theFpsTracker;
+SmokeSim smokeSim;
+Camera camera;
+FpsTracker FPS_Tracker;
 
 // UI Helpers
 int lastX = 0, lastY = 0;
@@ -24,97 +24,97 @@ int savedHeight = 0;
 
 void initCamera()
 {
-   double w = theDim[0]*theCellSize;   
-   double h = theDim[1]*theCellSize;   
-   double d = theDim[2]*theCellSize;   
-   double angle = 0.5 * theCamera.dfltVfov * PI/180.0;
-   double dist;
-   if (w > h) dist = w*0.5/std::tan(angle);  // aspect is 1, so i can do this
-   else dist = h*0.5/std::tan(angle);
-   theCamera.dfltEye.set(w*0.5, h*0.5, -(dist+d*0.5));
-   theCamera.dfltLook.set(w*0.5, h*0.5, 0.0);
-   theCamera.reset();
+    double w = theDim[0]*theCellSize;   
+    double h = theDim[1]*theCellSize;   
+    double d = theDim[2]*theCellSize;   
+    double angle = 0.5 * camera.dfltVfov * PI/180.0;
+    double dist;
+    if (w > h) dist = w*0.5/std::tan(angle);  // aspect is 1, so i can do this
+    else dist = h*0.5/std::tan(angle);
+    camera.dfltEye.set(w*0.5, h*0.5, -(dist+d*0.5));
+    camera.dfltLook.set(w*0.5, h*0.5, 0.0);
+    camera.reset();
 }
 
 void onMouseMotionCb(int x, int y)
 {
-   int deltaX = lastX - x;
-   int deltaY = lastY - y;
-   bool moveLeftRight = abs(deltaX) > abs(deltaY);
-   bool moveUpDown = !moveLeftRight;
+    int deltaX = lastX - x;
+    int deltaY = lastY - y;
+    bool moveLeftRight = abs(deltaX) > abs(deltaY);
+    bool moveUpDown = !moveLeftRight;
 
-   if (theButtonState == GLUT_LEFT_BUTTON)  // Rotate
-   {
-      if (moveLeftRight && deltaX > 0) theCamera.orbitLeft(deltaX);
-      else if (moveLeftRight && deltaX < 0) theCamera.orbitRight(-deltaX);
-      else if (moveUpDown && deltaY > 0) theCamera.orbitUp(deltaY);
-      else if (moveUpDown && deltaY < 0) theCamera.orbitDown(-deltaY);
-   }
-   else if (theButtonState == GLUT_MIDDLE_BUTTON) // Zoom
-   {
-      if (moveUpDown && deltaY > 0) theCamera.moveForward(deltaY);
-      else if (moveUpDown && deltaY < 0) theCamera.moveBack(-deltaY);
-   }    
+    if (theButtonState == GLUT_LEFT_BUTTON)  // Rotate
+    {
+        if (moveLeftRight && deltaX > 0) camera.orbitLeft(deltaX);
+        else if (moveLeftRight && deltaX < 0) camera.orbitRight(-deltaX);
+        else if (moveUpDown && deltaY > 0) camera.orbitUp(deltaY);
+        else if (moveUpDown && deltaY < 0) camera.orbitDown(-deltaY);
+    }
+    else if (theButtonState == GLUT_MIDDLE_BUTTON) // Zoom
+    {
+        if (moveUpDown && deltaY > 0) camera.moveForward(deltaY);
+        else if (moveUpDown && deltaY < 0) camera.moveBack(-deltaY);
+    }    
 
-   if (theModifierState & GLUT_ACTIVE_ALT) // camera move
-   {
-      if (theButtonState == GLUT_RIGHT_BUTTON) // Pan
-      {
-         if (moveLeftRight && deltaX > 0) theCamera.moveLeft(deltaX);
-         else if (moveLeftRight && deltaX < 0) theCamera.moveRight(-deltaX);
-         else if (moveUpDown && deltaY > 0) theCamera.moveUp(deltaY);
-         else if (moveUpDown && deltaY < 0) theCamera.moveDown(-deltaY);
-      }   
-   }
- 
-   lastX = x;
-   lastY = y;
-   glutPostRedisplay();
+    if (theModifierState & GLUT_ACTIVE_ALT) // camera move
+    {
+        if (theButtonState == GLUT_RIGHT_BUTTON) // Pan
+        {
+            if (moveLeftRight && deltaX > 0) camera.moveLeft(deltaX);
+            else if (moveLeftRight && deltaX < 0) camera.moveRight(-deltaX);
+            else if (moveUpDown && deltaY > 0) camera.moveUp(deltaY);
+            else if (moveUpDown && deltaY < 0) camera.moveDown(-deltaY);
+        }
+    }
+
+    lastX = x;
+    lastY = y;
+    glutPostRedisplay();
 }
 
 void onMouseCb(int button, int state, int x, int y)
 {
-   theButtonState = button;
-   theModifierState = glutGetModifiers();
-   lastX = x;
-   lastY = y;
+    theButtonState = button;
+    theModifierState = glutGetModifiers();
+    lastX = x;
+    lastY = y;
 
-   glutSetMenu(theMenu);
-   if (theModifierState & GLUT_ACTIVE_ALT)
-   {
-      glutDetachMenu(GLUT_RIGHT_BUTTON);
-   }
-   else
-   {
-      glutAttachMenu(GLUT_RIGHT_BUTTON);
-   }
+    glutSetMenu(theMenu);
+    if (theModifierState & GLUT_ACTIVE_ALT)
+    {
+        glutDetachMenu(GLUT_RIGHT_BUTTON);
+    }
+    else
+    {
+        glutAttachMenu(GLUT_RIGHT_BUTTON);
+    }
 
-   onMouseMotionCb(x, y);
+    onMouseMotionCb(x, y);
 }
 
 
 void onKeyboardCb(unsigned char key, int x, int y)
 {
-   if (key == ' ') theCamera.reset();
-   else if (key == '0') MACGrid::theRenderMode = MACGrid::CUBES;
-   else if (key == '1') MACGrid::theRenderMode = MACGrid::SHEETS;
-   else if (key == 'v') MACGrid::theDisplayVel = !MACGrid::theDisplayVel;
-   else if (key == 'r') theSmokeSim.setRecording(!theSmokeSim.isRecording(), savedWidth, savedHeight);
-   else if (key == '>') isRunning = true;
-   else if (key == '=') isRunning = false;
-   else if (key == '<') theSmokeSim.reset();
-   else if (key == 27) exit(0); // ESC Key
-   glutPostRedisplay();
+    if (key == ' ') camera.reset();
+    else if (key == '0') MACGrid::theRenderMode = MACGrid::CUBES;
+    else if (key == '1') MACGrid::theRenderMode = MACGrid::SHEETS;
+    else if (key == 'v') MACGrid::theDisplayVel = !MACGrid::theDisplayVel;
+    else if (key == 'r') smokeSim.setRecording(!smokeSim.isRecording(), savedWidth, savedHeight);
+    else if (key == '>') isRunning = true;
+    else if (key == '=') isRunning = false;
+    else if (key == '<') smokeSim.reset();
+    else if (key == 27) exit(0); // ESC Key
+    glutPostRedisplay();
 }
 
 void onMenuCb(int value)
 {
-   switch (value)
-   {
-   case -1: exit(0);
-   case -6: theSmokeSim.reset(); break;
-   default: onKeyboardCb(value, 0, 0); break;
-   }
+    switch (value)
+    {
+    case -1: exit(0);
+    case -6: smokeSim.reset(); break;
+    default: onKeyboardCb(value, 0, 0); break;
+    }
 }
 
 void onKeyboardSpecialCb(int key, int x, int y)
@@ -123,25 +123,24 @@ void onKeyboardSpecialCb(int key, int x, int y)
 
 void onTimerCb(int value)
 {
-   if (isRunning) theSmokeSim.step();
-   glutTimerFunc(theMillisecondsPerFrame, onTimerCb, 0);
-   glutPostRedisplay();
+    if (isRunning) smokeSim.step();
+    glutTimerFunc(theMillisecondsPerFrame, onTimerCb, 0);
+    glutPostRedisplay();
 }
 
 void onResizeCb(int width, int height)
 {
-	
-	// Save the width and height:
-	savedWidth = width;
-	savedHeight = height;
-	
-   // Update viewport
-   glViewport(0, 0, width, height);
+    // Save the width and height:
+    savedWidth = width;
+    savedHeight = height;
 
-   // Update camera projection's aspect ratio
-   float vfov, aspect, zNear, zFar;
-   theCamera.getProjection(&vfov, &aspect, &zNear, &zFar);
-   theCamera.setProjection(vfov, ((GLfloat) width)/height, zNear, zFar);
+    // Update viewport
+    glViewport(0, 0, width, height);
+
+    // Update camera projection's aspect ratio
+    float vfov, aspect, zNear, zFar;
+    camera.getProjection(&vfov, &aspect, &zNear, &zFar);
+    camera.setProjection(vfov, ((GLfloat) width)/height, zNear, zFar);
 }
 
 void drawOverlay()
@@ -161,8 +160,8 @@ void drawOverlay()
      
      char info[1024];
      sprintf(info, "Framerate: %3.1f  |  Frame: %u  |  %s", 
-         theFpsTracker.fpsAverage(), theSmokeSim.getTotalFrames(),
-         theSmokeSim.isRecording()? "Recording..." : "");
+         FPS_Tracker.fpsAverage(), smokeSim.getTotalFrames(),
+         smokeSim.isRecording()? "Recording..." : "");
  
      for (unsigned int i = 0; i < strlen(info); i++)
      {
@@ -173,15 +172,15 @@ void drawOverlay()
 
 void onDrawCb()
 {
-	// Keep track of time
-	theFpsTracker.timestamp();
+    // Keep track of time
+    FPS_Tracker.timestamp();
 
-	// Draw Scene and overlay
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	theCamera.draw();
-	theSmokeSim.draw(theCamera);
-	drawOverlay();
-	glutSwapBuffers();
+    // Draw Scene and overlay
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    camera.draw();
+    smokeSim.draw(camera);
+    drawOverlay();
+    glutSwapBuffers();
 }
 
 void init(void)
@@ -201,7 +200,6 @@ void init(void)
     glDisable(GL_LIGHTING);
     glCullFace(GL_BACK);
 }
-
 
 int main(int argc, char **argv)
 {

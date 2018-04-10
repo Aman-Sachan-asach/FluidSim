@@ -11,7 +11,7 @@ class SmokeSim
 {
 public:
 	SmokeSim();
-	virtual ~SmokeSim();
+	virtual ~SmokeSim() {};
 
 	virtual void reset();
 	virtual void step();

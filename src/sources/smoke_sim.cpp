@@ -5,11 +5,8 @@
 
 SmokeSim::SmokeSim() : mFrameNum(0), mTotalFrameNum(0), mRecordEnabled(false)
 {
-   reset();
+	reset();
 }
-
-SmokeSim::~SmokeSim()
-{}
 
 void SmokeSim::reset()
 {
@@ -17,34 +14,23 @@ void SmokeSim::reset()
 	mTotalFrameNum = 0;
 }
 
-/*
-void SmokeSim::setGridDimensions(int x, int y, int z)
-{
-   //extern int theDim[3]; // Naughty globals...
-   theDim[0] = x;
-   theDim[1] = y;
-   theDim[2] = z;
-   reset();
-}
-*/
-
 void SmokeSim::step()
 {
 	double dt = 0.04;//0.1;
 
-   // Step0: Gather user forces
-   mGrid.updateSources();
+	// Step0: Gather user forces
+	mGrid.updateSources();
 
-   // Step1: Calculate new velocities
-   mGrid.advectVelocity(dt);
-   mGrid.addExternalForces(dt);
-   mGrid.project(dt);
+	// Step1: Calculate new velocities
+	mGrid.advectVelocity(dt);
+	mGrid.addExternalForces(dt);
+	mGrid.project(dt);
 
-   // Step2: Calculate new temperature
-   mGrid.advectTemperature(dt);
+	// Step2: Calculate new temperature
+	mGrid.advectTemperature(dt);
 
-   // Step3: Calculate new density 
-   mGrid.advectDensity(dt);
+	// Step3: Calculate new density 
+	mGrid.advectDensity(dt);
 
 	// Step4: Advect rendering particles
 	mGrid.advectRenderingParticles(dt);
@@ -54,13 +40,12 @@ void SmokeSim::step()
 
 void SmokeSim::setRecording(bool on, int width, int height)
 {
-   if (on && ! mRecordEnabled)  // reset counter
-   {
-      mFrameNum = 0;
-   }
-   mRecordEnabled = on;
-	
-	
+	if (on && ! mRecordEnabled)  // reset counter
+	{
+		mFrameNum = 0;
+	}
+
+	mRecordEnabled = on;
 	recordWidth = width;
 	recordHeight = height;
 }
@@ -99,7 +84,8 @@ void SmokeSim::drawAxes()
 	glPopAttrib();
 }
 
-void SmokeSim::grabScreen()  // Code adapted from asst#1 . USING STB_IMAGE_WRITE INSTEAD OF DEVIL.
+// Code adapted from asst#1 . USING STB_IMAGE_WRITE INSTEAD OF DEVIL.
+void SmokeSim::grabScreen()  
 {
 	if (mFrameNum > 9999) exit(0);
 
@@ -111,8 +97,7 @@ void SmokeSim::grabScreen()  // Code adapted from asst#1 . USING STB_IMAGE_WRITE
 	unsigned char* bitmapData = new unsigned char[3 * recordWidth * recordHeight];
 	for (int i=0; i<recordHeight; i++) 
 	{
-		glReadPixels(0,i,recordWidth,1,GL_RGB, GL_UNSIGNED_BYTE, 
-			bitmapData + (recordWidth * 3 * ((recordHeight-1)-i)));
+		glReadPixels(0,i,recordWidth,1,GL_RGB, GL_UNSIGNED_BYTE, bitmapData + (recordWidth * 3 * ((recordHeight-1)-i)));
 	}
 	char anim_filename[2048];
 	snprintf(anim_filename, 2048, "../records/smoke_%04d.png", mFrameNum); 
@@ -126,6 +111,7 @@ void SmokeSim::grabScreen()  // Code adapted from asst#1 . USING STB_IMAGE_WRITE
 	mFrameNum++;
 }
 
-int SmokeSim::getTotalFrames() {
+int SmokeSim::getTotalFrames() 
+{
 	return mTotalFrameNum;
 }

@@ -22,7 +22,6 @@ bool MACGrid::theDisplayVel = false;//true
 		for(int j = 0; j < theDim[MACGrid::Y]+1; j++) \
 			for(int i = 0; i < theDim[MACGrid::X]+1; i++) 
 
-
 MACGrid::MACGrid()
 {
 	reset();
