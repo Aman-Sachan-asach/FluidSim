@@ -1,7 +1,7 @@
 #pragma once
 
-#include <vector> 
 #include "../external/vec.h"
+#include <vector>
 #include "globals.h" 
 
 // GridData is capable of storing any data in a grid
@@ -45,7 +45,6 @@ public:
    virtual void getCell(const vec3& pt, int& i, int& j, int& k);
 
 protected:
-
    virtual vec3 worldToSelf(const vec3& pt) const;
    double mDfltValue;
    vec3 mMax;
@@ -83,4 +82,19 @@ public:
    virtual double& operator()(int i, int j, int k);
    virtual const double operator()(int i, int j, int k) const; 
    virtual vec3 worldToSelf(const vec3& pt) const;
+};
+
+struct GridDataMatrix 
+{
+   GridDataMatrix() 
+   {
+      diag.initialize();
+      plusI.initialize();
+      plusJ.initialize();
+      plusK.initialize();
+   }
+   GridData diag;
+   GridData plusI;
+   GridData plusJ;
+   GridData plusK;
 };

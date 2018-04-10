@@ -3,33 +3,61 @@
 
 namespace mmc
 {
-    /*! \brief High precision clock for timing events. 
-      
-      This class is implemented on top of the Timer class.  Usually it is
-      not necessary to use the Timer class directly; instead, use this
-      class. */
+    // High precision clock for timing events. 
+    // This class is implemented on top of the Timer class. Use as an interface to the Timer class
     class Clock
     {
     public:
-        /*! Construct a clock. */
-        inline Clock ();
+        inline Clock (): paused_(false)
+        {
+            timer_ = new Timer;
+            invFreq_ = timer_->getInvFreq();
+            timer_->start();
+            reset();
+        }
 
-        /*! Reset the clock (0 time elapsed). */
-        inline void reset ();
+        // Reset the clock (0 time elapsed)
+        inline void reset ()
+        {
+            start_ = timer_->queryElapsed();
+            inc_ = curTime_ = 0;
+        }
 
-        /*! Call once per frame to update the internal clock state. */
-        inline void inc ();
+        // Call once per frame to update the internal clock state
+        inline void inc ()
+        {
+            timer_->inc();
+            if (!paused_)
+            {
+                inc_ = timer_->queryInc();
+                curTime_ += inc_;
+            }
+            else
+            {
+                inc_ = 0;
+            }
+        }
 
-        /*! Returns the amount of time (in ms) elapsed between last
-          two calls to \p inc(). */
-        inline long queryInc () const;
+        // All Query functions convert internal clock time to long in milliseconds.
+        // Returns the amount of time (in ms) elapsed between last two calls to \p inc()
+        inline long queryInc () const { return (long) (1000.0 * inc_ * invFreq_); }
 
-        /*! Returns the amount of time (in ms) elapsed since clock creation or
-          reset() was called. */
-        inline long queryTime () const;
+        // Returns the amount of time (in ms) elapsed since clock creation or reset() was called
+        inline long queryTime () const { return (long) (1000.0 * curTime_ * invFreq_); }
 
-        /*! Pause the clock. */
-        inline void pauseToggle ();
+        // Pause the clock. */
+        inline void pauseToggle ()
+        {
+            if (paused_)
+            {
+                paused_ = false;
+            }
+            else
+            {
+                paused_ = true;
+                inc_ = 0;
+            }
+        }
 
     private:
         Timer *timer_;
@@ -39,69 +67,4 @@ namespace mmc
         bool paused_;
         double invFreq_;
     };
-
-    //////////////////////////////////////////////////////////////////////
-    //  Implementation.
-    //
-
-    inline
-    Clock::Clock ()
-        : paused_(false)
-    {
-        timer_ = new Timer;
-        invFreq_ = timer_->getInvFreq();
-        timer_->start();
-        reset();
-    }
-
-    void
-    Clock::reset ()
-    {
-        start_ = timer_->queryElapsed();
-        inc_ = curTime_ = 0;
-    }
-
-    void
-    Clock::inc ()
-    {
-        timer_->inc();
-        if (!paused_)
-        {
-            inc_ = timer_->queryInc();
-            curTime_ += inc_;
-        }
-        else
-        {
-            inc_ = 0;
-        }
-    }
-
-    // Converts internal clock increment to long in milliseconds.
-    long
-    Clock::queryInc () const
-    {
-        return (long) (1000.0 * inc_ * invFreq_);
-    }
-
-    // Converts internal clock time to long in milliseconds.
-    long
-    Clock::queryTime () const
-    {
-        return (long) (1000.0 * curTime_ * invFreq_);
-    }
-
-    void
-    Clock::pauseToggle ()
-    {
-        if (paused_)
-        {
-            paused_ = false;
-        }
-        else
-        {
-            paused_ = true;
-            inc_ = 0;
-        }
-    }
-
 } // namespace mmc

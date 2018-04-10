@@ -257,54 +257,65 @@ void MACGrid::project(double dt)
 
 	#ifdef _DEBUG
 	// Check border velocities:
-	FOR_EACH_FACE {
-		if (isValidFace(MACGrid::X, i, j, k)) {
-
-			if (i == 0) {
-				if (abs(target.mU(i,j,k)) > 0.0000001) {
-					PRINT_LINE( "LOW X:  " << target.mU(i,j,k) );
+	FOR_EACH_FACE 
+	{
+		if (isValidFace(MACGrid::X, i, j, k)) 
+		{
+			if (i == 0) 
+			{
+				if (abs(target.mU(i,j,k)) > 0.0000001) 
+				{
+					PrintLine( "LOW X:  " << target.mU(i,j,k) );
 					//target.mU(i,j,k) = 0;
 				}
 			}
 
-			if (i == theDim[MACGrid::X]) {
-				if (abs(target.mU(i,j,k)) > 0.0000001) {
-					PRINT_LINE( "HIGH X: " << target.mU(i,j,k) );
+			if (i == theDim[MACGrid::X]) 
+			{
+				if (abs(target.mU(i,j,k)) > 0.0000001) 
+				{
+					PrintLine( "HIGH X: " << target.mU(i,j,k) );
 					//target.mU(i,j,k) = 0;
 				}
 			}
-
 		}
-		if (isValidFace(MACGrid::Y, i, j, k)) {
-			
-
-			if (j == 0) {
-				if (abs(target.mV(i,j,k)) > 0.0000001) {
-					PRINT_LINE( "LOW Y:  " << target.mV(i,j,k) );
+		if (isValidFace(MACGrid::Y, i, j, k)) 
+		{
+			if (j == 0) 
+			{
+				if (abs(target.mV(i,j,k)) > 0.0000001) 
+				{
+					PrintLine( "LOW Y:  " << target.mV(i,j,k) );
 					//target.mV(i,j,k) = 0;
 				}
 			}
 
-			if (j == theDim[MACGrid::Y]) {
-				if (abs(target.mV(i,j,k)) > 0.0000001) {
-					PRINT_LINE( "HIGH Y: " << target.mV(i,j,k) );
+			if (j == theDim[MACGrid::Y]) 
+			{
+				if (abs(target.mV(i,j,k)) > 0.0000001) 
+				{
+					PrintLine( "HIGH Y: " << target.mV(i,j,k) );
 					//target.mV(i,j,k) = 0;
 				}
 			}
 
 		}
-		if (isValidFace(MACGrid::Z, i, j, k)) {
-			
-			if (k == 0) {
-				if (abs(target.mW(i,j,k)) > 0.0000001) {
-					PRINT_LINE( "LOW Z:  " << target.mW(i,j,k) );
+		if (isValidFace(MACGrid::Z, i, j, k)) 
+		{			
+			if (k == 0) 
+			{
+				if (abs(target.mW(i,j,k)) > 0.0000001) 
+				{
+					PrintLine( "LOW Z:  " << target.mW(i,j,k) );
 					//target.mW(i,j,k) = 0;
 				}
 			}
 
-			if (k == theDim[MACGrid::Z]) {
-				if (abs(target.mW(i,j,k)) > 0.0000001) {
-					PRINT_LINE( "HIGH Z: " << target.mW(i,j,k) );
+			if (k == theDim[MACGrid::Z]) 
+			{
+				if (abs(target.mW(i,j,k)) > 0.0000001) 
+				{
+					PrintLine( "HIGH Z: " << target.mW(i,j,k) );
 					//target.mW(i,j,k) = 0;
 				}
 			}
@@ -334,9 +345,9 @@ void MACGrid::project(double dt)
 		double divergence = ((velHighX - velLowX) + (velHighY - velLowY) + (velHighZ - velLowZ)) / theCellSize;
 		if (abs(divergence) > 0.02 ) 
 		{
-			PRINT_LINE("WARNING: Divergent! ");
-			PRINT_LINE("Divergence: " << divergence);
-			PRINT_LINE("Cell: " << i << ", " << j << ", " << k);
+			PrintLine("WARNING: Divergent! ");
+			PrintLine("Divergence: " << divergence);
+			PrintLine("Cell: " << i << ", " << j << ", " << k);
 		}
 	}
 	#endif
@@ -444,7 +455,7 @@ vec3 MACGrid::clipToGrid(const vec3& outsidePoint, const vec3& insidePoint)
 #ifdef _DEBUG
 	// Make sure the point is now in the grid:
 	if (clippedPoint[0] < 0 || clippedPoint[1] < 0 || clippedPoint[2] < 0 || clippedPoint[0] > getSize(0) || clippedPoint[1] > getSize(1) || clippedPoint[2] > getSize(2)) {
-		PRINT_LINE("WARNING: Clipped point is outside grid!");
+		PrintLine("WARNING: Clipped point is outside grid!");
 	}
 #endif
 
@@ -588,17 +599,17 @@ bool MACGrid::preconditionedConjugateGradient(const GridDataMatrix & A, GridData
 	GridData r = d; // Residual vector.
 
 	/*
-	PRINT_LINE("r: ");
+	PrintLine("r: ");
 	FOR_EACH_CELL {
-		PRINT_LINE(r(i,j,k));
+		PrintLine(r(i,j,k));
 	}
 	*/
 	GridData z; z.initialize();
 	applyPreconditioner(r, A, z); // Auxillary vector.
 	/*
-	PRINT_LINE("z: ");
+	PrintLine("z: ");
 	FOR_EACH_CELL {
-		PRINT_LINE(z(i,j,k));
+		PrintLine(z(i,j,k));
 	}
 	*/
 
@@ -626,7 +637,7 @@ bool MACGrid::preconditionedConjugateGradient(const GridDataMatrix & A, GridData
 
 		if (maxMagnitude(r) <= tolerance) 
 		{
-			//PRINT_LINE("PCG converged in " << (iteration + 1) << " iterations.");
+			//PrintLine("PCG converged in " << (iteration + 1) << " iterations.");
 			return true; //return p;
 		}
 
@@ -644,7 +655,7 @@ bool MACGrid::preconditionedConjugateGradient(const GridDataMatrix & A, GridData
 		sigma = sigmaNew;
 	}
 
-	PRINT_LINE( "PCG didn't converge!" );
+	PrintLine( "PCG didn't converge!" );
 	return false;
 }
 

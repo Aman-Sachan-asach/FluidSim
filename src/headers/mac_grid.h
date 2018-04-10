@@ -11,9 +11,7 @@
 #include "globals.h"
 
 #include "grid_data.h"
-#include "grid_data_matrix.h" 
 #include "camera.h"
-#include "custom_output.h" 
 
 #undef max
 #undef min 

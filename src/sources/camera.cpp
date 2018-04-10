@@ -6,7 +6,7 @@ vec3  Camera::dfltLook(5.0, 10.0, 0.0);
 float Camera::dfltVfov = 60.0;
 float Camera::dfltAspect = 1.0;
 float Camera::dfltNear = 0.5;
-float Camera::dfltFar = 120.0; // 
+float Camera::dfltFar = 120.0;
 float Camera::dfltSpeed = 0.1;
 float Camera::dfltTurnRate = 1.0*(PI/180.0);
 
