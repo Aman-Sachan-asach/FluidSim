@@ -102,22 +102,51 @@ void MACGrid::updateSources()
 // Advection, External Forces, and Projection //
 //----------------------------------------------
 
+/* 
+	Advection is being calculated in a semi-lagrangian fashion:
+		We are trying to calculate the value of some quantity 'q' at some position 'currentPosition'
+		-- Determine the currentPosition
+
+		Treat the quantity q as being stored in some imaginary particle (particles are a Lagrangian concept). 
+		Advection just says we are going to move the quantity q using some imaginary particle from its previous 
+		position to its new position (think diffusion).
+		-- "currState = prevState"
+	
+	// TODO come back and update this bit (specifically where the averaging happens)
+	Because Advection deals with imaginary particles and not actual particles, when we retrieve the 'prevState'
+	we get an averaged out value because every timestep we average quantities
+*/ 
+
 void MACGrid::advectVelocity(double dt)
 {
-	// TODO: Calculate new velocities and store in target
+	// TODO Section
+	// Calculate new velocities and store in target and also in mU, mV, mW
 
+	FOR_EACH_FACE 
+	{
+		if (isValidFace(MACGrid::X, i, j, k)) 
+		{
+			vec3 currentPosition = getFacePosition(MACGrid::X, i, j, k);
+			vec3 rewoundPosition = getRewoundPosition(currentPosition, dt);
+			vec3 newVelocity = getVelocity(rewoundPosition);
+			target.mU(i,j,k) = newVelocity[0];
+		}
+		if (isValidFace(MACGrid::Y, i, j, k)) 
+		{
+			vec3 currentPosition = getFacePosition(MACGrid::Y, i, j, k);
+			vec3 rewoundPosition = getRewoundPosition(currentPosition, dt);
+			vec3 newVelocity = getVelocity(rewoundPosition);
+			target.mV(i,j,k) = newVelocity[1];
+		}
+		if (isValidFace(MACGrid::Z, i, j, k)) 
+		{
+			vec3 currentPosition = getFacePosition(MACGrid::Z, i, j, k);
+			vec3 rewoundPosition = getRewoundPosition(currentPosition, dt);
+			vec3 newVelocity = getVelocity(rewoundPosition);
+			target.mW(i,j,k) = newVelocity[2];
+		}
+	}
 
-	// TODO: Get rid of these three lines after you implement yours
-	target.mU = mU;
-	target.mV = mV;
-	target.mW = mW;
-
-	// TODO: Your code is here. It builds target.mU, target.mV and target.mW for all faces
-	//
-	//
-	//
-
-	// Then save the result to our object
 	mU = target.mU;
 	mV = target.mV;
 	mW = target.mW;
@@ -125,33 +154,33 @@ void MACGrid::advectVelocity(double dt)
 
 void MACGrid::advectTemperature(double dt)
 {
-	// TODO: Calculate new temp and store in target
+	// TODO Section
+	// Calculate new temp and store in target and mT
 
-	// TODO: Get rid of this line after you implement yours
-	target.mT = mT;
+	FOR_EACH_CELL 
+	{
+		vec3 currentPosition = getCenter(i,j,k);
+		vec3 rewoundPosition = getRewoundPosition(currentPosition, dt);
+		double newTemperature = getTemperature(rewoundPosition);
+		target.mT(i,j,k) = newTemperature;
+	}
 
-	// TODO: Your code is here. It builds target.mT for all cells.
-	//
-	//
-	//
-
-	// Then save the result to our object
 	mT = target.mT;
 }
 
 void MACGrid::advectDensity(double dt)
 {
-	// TODO: Calculate new densitities and store in target
+	// TODO Section
+	// Calculate new densities and store in target and mD
 
-	// TODO: Get rid of this line after you implement yours
-	target.mD = mD;
+	FOR_EACH_CELL 
+	{
+		vec3 currentPosition = getCenter(i,j,k);
+		vec3 rewoundPosition = getRewoundPosition(currentPosition, dt);
+		double newDensity = getDensity(rewoundPosition);
+		target.mD(i,j,k) = newDensity;
+	}
 
-	// TODO: Your code is here. It builds target.mD for all cells.
-	//
-	//
-	//
-
-	// Then save the result to our object
 	mD = target.mD;
 }
 
