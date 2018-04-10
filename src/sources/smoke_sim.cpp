@@ -9,12 +9,11 @@ SmokeSim::SmokeSim() : mFrameNum(0), mTotalFrameNum(0), mRecordEnabled(false)
 }
 
 SmokeSim::~SmokeSim()
-{
-}
+{}
 
 void SmokeSim::reset()
 {
-   mGrid.reset();
+	mGrid.reset();
 	mTotalFrameNum = 0;
 }
 

@@ -25,17 +25,12 @@ bool MACGrid::theDisplayVel = false;//true
 
 MACGrid::MACGrid()
 {
-	initialize();
+	reset();
 }
 
-MACGrid::MACGrid(const MACGrid& orig)
+MACGrid::MACGrid(const MACGrid& orig): mU(orig.mU), mV(orig.mV), mW(orig.mW), mP(orig.mP), mD(orig.mD), mT(orig.mT)
 {
-	mU = orig.mU;
-	mV = orig.mV;
-	mW = orig.mW;
-	mP = orig.mP;
-	mD = orig.mD;
-	mT = orig.mT;
+	reset();
 }
 
 MACGrid& MACGrid::operator=(const MACGrid& orig)
@@ -54,10 +49,6 @@ MACGrid& MACGrid::operator=(const MACGrid& orig)
 	return *this;
 }
 
-MACGrid::~MACGrid()
-{
-}
-
 void MACGrid::reset()
 {
 	mU.initialize();
@@ -71,29 +62,20 @@ void MACGrid::reset()
 	calculatePreconditioner(AMatrix);
 }
 
-void MACGrid::initialize()
-{
-   reset();
-}
-
 void MACGrid::updateSources()
 {
 	// Set initial values for density, temperature, velocity
-
 	for(int i=6; i<12;i++)
 	{
 		for(int j=0; j<5; j++)
 		{
 			mV(i,j+1,0) = 2.0;
-			mD(i,j,0) = 1.0;
-			mT(i,j,0) = 1.0;
-
 			mV(i,j+2,0) = 2.0;
-			mD(i,j,0) = 1.0;
-			mT(i,j,0) = 1.0;
+
+			mD(i,j  ,0) = 1.0;
+			mT(i,j  ,0) = 1.0;
 		}
 	}
-
 
 	// Refresh particles in source.
 	for(int i=6; i<12; i++) 
@@ -117,6 +99,9 @@ void MACGrid::updateSources()
 	}
 }
 
+//----------------------------------------------
+// Advection, External Forces, and Projection //
+//----------------------------------------------
 
 void MACGrid::advectVelocity(double dt)
 {
@@ -137,7 +122,7 @@ void MACGrid::advectVelocity(double dt)
 	mU = target.mU;
 	mV = target.mV;
 	mW = target.mW;
-	}
+}
 
 void MACGrid::advectTemperature(double dt)
 {
@@ -155,6 +140,21 @@ void MACGrid::advectTemperature(double dt)
 	mT = target.mT;
 }
 
+void MACGrid::advectDensity(double dt)
+{
+	// TODO: Calculate new densitities and store in target
+
+	// TODO: Get rid of this line after you implement yours
+	target.mD = mD;
+
+	// TODO: Your code is here. It builds target.mD for all cells.
+	//
+	//
+	//
+
+	// Then save the result to our object
+	mD = target.mD;
+}
 
 void MACGrid::advectRenderingParticles(double dt) 
 {
@@ -173,61 +173,6 @@ void MACGrid::advectRenderingParticles(double dt)
 		rendering_particles[p] = clippedBetterNextPosition;
 		rendering_particles_vel[p] = averageVelocity;
 	}
-}
-
-void MACGrid::advectDensity(double dt)
-{
-	// TODO: Calculate new densitities and store in target
-
-	// TODO: Get rid of this line after you implement yours
-	target.mD = mD;
-
-	// TODO: Your code is here. It builds target.mD for all cells.
-	//
-	//
-	//
-
-	// Then save the result to our object
-	mD = target.mD;
-	}
-
-void MACGrid::computeBouyancy(double dt)
-{
-	// TODO: Calculate bouyancy and store in target
-
-	// TODO: Get rid of this line after you implement yours
-	target.mV = mV;
-
-	// TODO: Your code is here. It modifies target.mV for all y face velocities.
-	//
-	//
-	//
-
-	// and then save the result to our object
-	mV = target.mV;
-}
-
-void MACGrid::computeVorticityConfinement(double dt)
-{
-	// TODO: Calculate vorticity confinement forces
-
-	// Apply the forces to the current velocity and store the result in target
-	// STARTED.
-
-	// TODO: Get rid of this line after you implement yours
-	target.mU = mU;
-	target.mV = mV;
-	target.mW = mW;
-
-	// TODO: Your code is here. It modifies target.mU,mV,mW for all faces.
-	//
-	//
-	//
-
-	// Then save the result to our object
-	mU = target.mU;
-	mV = target.mV;
-	mW = target.mW;
 }
 
 void MACGrid::addExternalForces(double dt)
@@ -323,7 +268,6 @@ void MACGrid::project(double dt)
 	}
 	#endif
 
-
 	// Then save the result to our object
 	mP = target.mP; 
 	mU = target.mU;
@@ -353,51 +297,52 @@ void MACGrid::project(double dt)
 	#endif
 }
 
-vec3 MACGrid::getVelocity(const vec3& pt)
+//--------------
+// Simulation //
+//--------------
+
+void MACGrid::computeBouyancy(double dt)
 {
-	vec3 vel;
-	vel[0] = getVelocityX(pt); 
-	vel[1] = getVelocityY(pt); 
-	vel[2] = getVelocityZ(pt); 
-	return vel;
+	// TODO: Calculate bouyancy and store in target
+
+	// TODO: Get rid of this line after you implement yours
+	target.mV = mV;
+
+	// TODO: Your code is here. It modifies target.mV for all y face velocities.
+	//
+	//
+	//
+
+	// and then save the result to our object
+	mV = target.mV;
 }
 
-double MACGrid::getVelocityX(const vec3& pt)
+void MACGrid::computeVorticityConfinement(double dt)
 {
-	return mU.interpolate(pt);
+	// TODO: Calculate vorticity confinement forces
+
+	// Apply the forces to the current velocity and store the result in target
+	// STARTED.
+
+	// TODO: Get rid of this line after you implement yours
+	target.mU = mU;
+	target.mV = mV;
+	target.mW = mW;
+
+	// TODO: Your code is here. It modifies target.mU,mV,mW for all faces.
+	//
+	//
+	//
+
+	// Then save the result to our object
+	mU = target.mU;
+	mV = target.mV;
+	mW = target.mW;
 }
 
-double MACGrid::getVelocityY(const vec3& pt)
-{
-	return mV.interpolate(pt);
-}
-
-double MACGrid::getVelocityZ(const vec3& pt)
-{
-	return mW.interpolate(pt);
-}
-
-double MACGrid::getTemperature(const vec3& pt)
-{
-	return mT.interpolate(pt);
-}
-
-double MACGrid::getDensity(const vec3& pt)
-{
-	return mD.interpolate(pt);
-}
-
-vec3 MACGrid::getCenter(int i, int j, int k)
-{
-	double xstart = theCellSize/2.0;
-	double ystart = theCellSize/2.0;
-	double zstart = theCellSize/2.0;
-
-	double x = xstart + i*theCellSize;
-	double y = ystart + j*theCellSize;
-	double z = zstart + k*theCellSize;
-	return vec3(x, y, z);
-}
+//-------------------------
+// Miscellaneous Helpers //
+//-------------------------
 
 vec3 MACGrid::getRewoundPosition(const vec3 & currentPosition, const double dt) 
 {
@@ -437,14 +382,17 @@ vec3 MACGrid::clipToGrid(const vec3& outsidePoint, const vec3& insidePoint)
 
 	vec3 clippedPoint = outsidePoint;
 
-	for (int i = 0; i < 3; i++) {
-		if (clippedPoint[i] < 0) {
+	for (int i = 0; i < 3; i++) 
+	{
+		if (clippedPoint[i] < 0) 
+		{
 			vec3 distance = clippedPoint - insidePoint;
 			double newDistanceI = 0 - insidePoint[i];
 			double ratio = newDistanceI / distance[i];
 			clippedPoint = insidePoint + distance * ratio;
 		}
-		if (clippedPoint[i] > getSize(i)) {
+		if (clippedPoint[i] > getSize(i)) 
+		{
 			vec3 distance = clippedPoint - insidePoint;
 			double newDistanceI = getSize(i) - insidePoint[i];
 			double ratio = newDistanceI / distance[i];
@@ -454,7 +402,10 @@ vec3 MACGrid::clipToGrid(const vec3& outsidePoint, const vec3& insidePoint)
 
 #ifdef _DEBUG
 	// Make sure the point is now in the grid:
-	if (clippedPoint[0] < 0 || clippedPoint[1] < 0 || clippedPoint[2] < 0 || clippedPoint[0] > getSize(0) || clippedPoint[1] > getSize(1) || clippedPoint[2] > getSize(2)) {
+	if (clippedPoint[0] < 0 || clippedPoint[0] > getSize(0) || 
+		clippedPoint[1] < 0 || clippedPoint[1] > getSize(1) || 
+		clippedPoint[2] < 0 || clippedPoint[2] > getSize(2)) 
+	{
 		PrintLine("WARNING: Clipped point is outside grid!");
 	}
 #endif
@@ -462,71 +413,20 @@ vec3 MACGrid::clipToGrid(const vec3& outsidePoint, const vec3& insidePoint)
 	return clippedPoint;
 }
 
-
 double MACGrid::getSize(int dimension) 
 {
 	return theDim[dimension] * theCellSize;
 }
-
 
 int MACGrid::getCellIndex(int i, int j, int k)
 {
 	return i + j * theDim[MACGrid::X] + k * theDim[MACGrid::Y] * theDim[MACGrid::X];
 }
 
-
 int MACGrid::getNumberOfCells()
 {
 	return theDim[MACGrid::X] * theDim[MACGrid::Y] * theDim[MACGrid::Z];
 }
-
-
-bool MACGrid::isValidCell(int i, int j, int k)
-{
-	if (i >= theDim[MACGrid::X] || j >= theDim[MACGrid::Y] || k >= theDim[MACGrid::Z]) {
-		return false;
-	}
-
-	if (i < 0 || j < 0 || k < 0) {
-		return false;
-	}
-
-	return true;
-}
-
-
-bool MACGrid::isValidFace(int dimension, int i, int j, int k)
-{
-	if (dimension == 0) 
-	{
-		if (i > theDim[MACGrid::X] || j >= theDim[MACGrid::Y] || k >= theDim[MACGrid::Z]) 
-		{
-			return false;
-		}
-	} 
-	else if (dimension == 1) 
-	{
-		if (i >= theDim[MACGrid::X] || j > theDim[MACGrid::Y] || k >= theDim[MACGrid::Z]) 
-		{
-			return false;
-		}
-	} 
-	else if (dimension == 2) 
-	{
-		if (i >= theDim[MACGrid::X] || j >= theDim[MACGrid::Y] || k > theDim[MACGrid::Z]) 
-		{
-			return false;
-		}
-	}
-
-	if (i < 0 || j < 0 || k < 0) 
-	{
-		return false;
-	}
-
-	return true;
-}
-
 
 vec3 MACGrid::getFacePosition(int dimension, int i, int j, int k)
 {
@@ -543,8 +443,12 @@ vec3 MACGrid::getFacePosition(int dimension, int i, int j, int k)
 		return vec3((i + 0.5) * theCellSize, (j + 0.5) * theCellSize, k * theCellSize);
 	}
 
-	return vec3(0,0,0); //???
+	return vec3(0,0,0);
 }
+
+//------------------
+// Perconditioner //
+//------------------
 
 void MACGrid::calculateAMatrix() 
 {
@@ -706,7 +610,34 @@ void MACGrid::applyPreconditioner(const GridData & r, const GridDataMatrix & A, 
 	}
 }
 
+//----------------------------
+// Per Cell Math Operations //
+//----------------------------
 
+void MACGrid::apply(const GridDataMatrix & matrix, const GridData & vector, GridData & result) 
+{
+	FOR_EACH_CELL 
+	{ 
+		// For each row of the matrix.
+		double diag   = 0.0;
+		double plusI  = 0.0;
+		double plusJ  = 0.0;
+		double plusK  = 0.0;
+		double minusI = 0.0;
+		double minusJ = 0.0;
+		double minusK = 0.0;
+
+		diag = matrix.diag(i,j,k) * vector(i,j,k);
+		if (isValidCell(i+1,j,k)) plusI = matrix.plusI(i,j,k) * vector(i+1,j,k);
+		if (isValidCell(i,j+1,k)) plusJ = matrix.plusJ(i,j,k) * vector(i,j+1,k);
+		if (isValidCell(i,j,k+1)) plusK = matrix.plusK(i,j,k) * vector(i,j,k+1);
+		if (isValidCell(i-1,j,k)) minusI = matrix.plusI(i-1,j,k) * vector(i-1,j,k);
+		if (isValidCell(i,j-1,k)) minusJ = matrix.plusJ(i,j-1,k) * vector(i,j-1,k);
+		if (isValidCell(i,j,k-1)) minusK = matrix.plusK(i,j,k-1) * vector(i,j,k-1);
+
+		result(i,j,k) = diag + plusI + plusJ + plusK + minusI + minusJ + minusK;
+	}
+}
 
 double MACGrid::dotProduct(const GridData & vector1, const GridData & vector2) 
 {
@@ -719,7 +650,6 @@ double MACGrid::dotProduct(const GridData & vector1, const GridData & vector2)
 
 	return result;
 }
-
 
 void MACGrid::add(const GridData & vector1, const GridData & vector2, GridData & result) 
 {
@@ -743,7 +673,6 @@ void MACGrid::multiply(const double scalar, const GridData & vector, GridData & 
 	{
 		result(i,j,k) = scalar * vector(i,j,k);
 	}
-
 }
 
 double MACGrid::maxMagnitude(const GridData & vector) 
@@ -758,29 +687,9 @@ double MACGrid::maxMagnitude(const GridData & vector)
 	return result;
 }
 
-void MACGrid::apply(const GridDataMatrix & matrix, const GridData & vector, GridData & result) 
-{
-	FOR_EACH_CELL 
-	{ // For each row of the matrix.
-		double diag = 0;
-		double plusI = 0;
-		double plusJ = 0;
-		double plusK = 0;
-		double minusI = 0;
-		double minusJ = 0;
-		double minusK = 0;
-
-		diag = matrix.diag(i,j,k) * vector(i,j,k);
-		if (isValidCell(i+1,j,k)) plusI = matrix.plusI(i,j,k) * vector(i+1,j,k);
-		if (isValidCell(i,j+1,k)) plusJ = matrix.plusJ(i,j,k) * vector(i,j+1,k);
-		if (isValidCell(i,j,k+1)) plusK = matrix.plusK(i,j,k) * vector(i,j,k+1);
-		if (isValidCell(i-1,j,k)) minusI = matrix.plusI(i-1,j,k) * vector(i-1,j,k);
-		if (isValidCell(i,j-1,k)) minusJ = matrix.plusJ(i,j-1,k) * vector(i,j-1,k);
-		if (isValidCell(i,j,k-1)) minusK = matrix.plusK(i,j,k-1) * vector(i,j,k-1);
-
-		result(i,j,k) = diag + plusI + plusJ + plusK + minusI + minusJ + minusK;
-	}
-}
+//------------------
+// Save Functions //
+//------------------
 
 void MACGrid::saveSmoke(const char* fileName) 
 {
@@ -840,6 +749,30 @@ void MACGrid::saveDensity(std::string filename)
 	density_field->release();
 }
 
+//---------------
+// RenderColor //
+//---------------
+
+vec4 MACGrid::getRenderColor(int i, int j, int k)
+{
+	double value = mD(i, j, k); 
+	vec4 coldColor(0.5, 0.5, 1.0, value);
+	vec4 hotColor(1.0, 0.5, 0.5, value);
+	return Globals::Lerp(coldColor, hotColor, mT(i, j, k));
+}
+
+vec4 MACGrid::getRenderColor(const vec3& pt)
+{
+	double value = getDensity(pt);
+	vec4 coldColor(0.5, 0.5, 1.0, value);
+	vec4 hotColor(1.0, 0.5, 0.5, value);
+	return Globals::Lerp(coldColor, hotColor, getTemperature(pt));
+}
+
+//---------------------
+// Drawing Functions //
+//---------------------
+
 void MACGrid::draw(const Camera& c)
 {
 	drawWireGrid();
@@ -850,7 +783,7 @@ void MACGrid::draw(const Camera& c)
 
 void MACGrid::drawVelocities()
 {
-	// draw line at each center
+	// Draw line at each center
 	//glColor4f(0.0, 1.0, 0.0, 1.0);
 	glBegin(GL_LINES);
 	FOR_EACH_CELL
@@ -871,33 +804,46 @@ void MACGrid::drawVelocities()
 	glEnd();
 }
 
-vec4 MACGrid::getRenderColor(int i, int j, int k)
+void MACGrid::drawSmoke(const Camera& c)
 {
-	double value = mD(i, j, k); 
-	vec4 coldColor(0.5, 0.5, 1.0, value);
-	vec4 hotColor(1.0, 0.5, 0.5, value);
-	return Globals::Lerp(coldColor, hotColor, mT(i, j, k));
+	vec3 eyeDir = c.getBackward();
+	double zresult = fabs(Dot(eyeDir, vec3(1,0,0)));
+	double xresult = fabs(Dot(eyeDir, vec3(0,0,1)));
+	//double yresult = fabs(Dot(eyeDir, vec3(0,1,0)));
 
-	/*
-	// OLD:
-    double value = mD(i, j, k); 
-    return vec4(1.0, 0.9, 1.0, value);
-	*/
+	if (zresult < xresult)
+	{
+		drawZSheets(c.getPosition()[2] < 0);
+	}
+	else 
+	{
+		drawXSheets(c.getPosition()[0] < 0);
+	}
 }
 
-vec4 MACGrid::getRenderColor(const vec3& pt)
+void MACGrid::drawSmokeCubes(const Camera& c)
 {
-	double value = getDensity(pt);
-	vec4 coldColor(0.5, 0.5, 1.0, value);
-	vec4 hotColor(1.0, 0.5, 0.5, value);
-	return Globals::Lerp(coldColor, hotColor, getTemperature(pt));
+	std::multimap<double, MACGrid::Cube, std::greater<double> > cubes;
+	FOR_EACH_CELL
+	{
+		MACGrid::Cube cube;
+		cube.color = getRenderColor(i,j,k);
+		cube.pos = getCenter(i,j,k);
+		cube.dist = DistanceSqr(cube.pos, c.getPosition());
+		cubes.insert(make_pair(cube.dist, cube));
+	} 
 
-	/*
-	// OLD:
-    double value = getDensity(pt); 
-    return vec4(1.0, 1.0, 1.0, value);
-	*/
+	// Draw cubes from back to front
+	std::multimap<double, MACGrid::Cube, std::greater<double> >::const_iterator it;
+	for (it = cubes.begin(); it != cubes.end(); ++it)
+	{
+		drawCube(it->second);
+	}
 }
+
+//-------------------------
+// Draw Helper Functions //
+//-------------------------
 
 void MACGrid::drawZSheets(bool backToFront)
 {
@@ -1025,48 +971,9 @@ void MACGrid::drawXSheets(bool backToFront)
 	}
 }
 
-
-void MACGrid::drawSmoke(const Camera& c)
-{
-	vec3 eyeDir = c.getBackward();
-	double zresult = fabs(Dot(eyeDir, vec3(1,0,0)));
-	double xresult = fabs(Dot(eyeDir, vec3(0,0,1)));
-	//double yresult = fabs(Dot(eyeDir, vec3(0,1,0)));
-
-	if (zresult < xresult)
-	{
-		drawZSheets(c.getPosition()[2] < 0);
-	}
-	else 
-	{
-		drawXSheets(c.getPosition()[0] < 0);
-	}
-}
-
-void MACGrid::drawSmokeCubes(const Camera& c)
-{
-	std::multimap<double, MACGrid::Cube, std::greater<double> > cubes;
-	FOR_EACH_CELL
-	{
-		MACGrid::Cube cube;
-		cube.color = getRenderColor(i,j,k);
-		cube.pos = getCenter(i,j,k);
-		cube.dist = DistanceSqr(cube.pos, c.getPosition());
-		cubes.insert(make_pair(cube.dist, cube));
-	} 
-
-	// Draw cubes from back to front
-	std::multimap<double, MACGrid::Cube, std::greater<double> >::const_iterator it;
-	for (it = cubes.begin(); it != cubes.end(); ++it)
-	{
-		drawCube(it->second);
-	}
-}
-
 void MACGrid::drawWireGrid()
 {
 	// Display grid in light grey, draw top & bottom
-
 	double xstart = 0.0;
 	double ystart = 0.0;
 	double zstart = 0.0;
@@ -1116,7 +1023,6 @@ void MACGrid::drawWireGrid()
 	glEnd();
 }
 
-#define LEN 0.5
 void MACGrid::drawFace(const MACGrid::Cube& cube)
 {
 	glColor4dv(cube.color.n);
@@ -1177,4 +1083,100 @@ void MACGrid::drawCube(const MACGrid::Cube& cube)
 			glVertex3d(LEN,  LEN, -LEN);
 		glEnd();
 	glPopMatrix();
+}
+
+//---------------------------
+// Getter/Setter Functions //
+//---------------------------
+
+vec3 MACGrid::getVelocity(const vec3& pt)
+{
+	vec3 vel( getVelocityX(pt), getVelocityY(pt), getVelocityZ(pt) );
+	return vel;
+}
+
+double MACGrid::getVelocityX(const vec3& pt)
+{
+	return mU.interpolate(pt);
+}
+
+double MACGrid::getVelocityY(const vec3& pt)
+{
+	return mV.interpolate(pt);
+}
+
+double MACGrid::getVelocityZ(const vec3& pt)
+{
+	return mW.interpolate(pt);
+}
+
+double MACGrid::getTemperature(const vec3& pt)
+{
+	return mT.interpolate(pt);
+}
+
+double MACGrid::getDensity(const vec3& pt)
+{
+	return mD.interpolate(pt);
+}
+
+vec3 MACGrid::getCenter(int i, int j, int k)
+{
+	double xstart = theCellSize/2.0;
+	double ystart = theCellSize/2.0;
+	double zstart = theCellSize/2.0;
+
+	double x = xstart + i*theCellSize;
+	double y = ystart + j*theCellSize;
+	double z = zstart + k*theCellSize;
+	return vec3(x, y, z);
+}
+
+//--------------
+// Validation //
+//--------------
+
+bool MACGrid::isValidCell(int i, int j, int k)
+{
+	if (i >= theDim[MACGrid::X] || j >= theDim[MACGrid::Y] || k >= theDim[MACGrid::Z]) {
+		return false;
+	}
+
+	if (i < 0 || j < 0 || k < 0) {
+		return false;
+	}
+
+	return true;
+}
+
+bool MACGrid::isValidFace(int dimension, int i, int j, int k)
+{
+	if (dimension == 0) 
+	{
+		if (i > theDim[MACGrid::X] || j >= theDim[MACGrid::Y] || k >= theDim[MACGrid::Z]) 
+		{
+			return false;
+		}
+	} 
+	else if (dimension == 1) 
+	{
+		if (i >= theDim[MACGrid::X] || j > theDim[MACGrid::Y] || k >= theDim[MACGrid::Z]) 
+		{
+			return false;
+		}
+	} 
+	else if (dimension == 2) 
+	{
+		if (i >= theDim[MACGrid::X] || j >= theDim[MACGrid::Y] || k > theDim[MACGrid::Z]) 
+		{
+			return false;
+		}
+	}
+
+	if (i < 0 || j < 0 || k < 0) 
+	{
+		return false;
+	}
+
+	return true;
 }

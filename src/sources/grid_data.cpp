@@ -1,19 +1,5 @@
 #include "../headers/grid_data.h"
 
-GridData::GridData() : mDfltValue(0.0), mMax(0.0,0.0,0.0)
-{}
-
-GridData::GridData(const GridData& orig) : mDfltValue(orig.mDfltValue), mMax(orig.mMax), mData(orig.mData)
-{}
-
-GridData::~GridData() 
-{}
-
-std::vector<double>& GridData::data()
-{
-   return mData;
-}
-
 GridData& GridData::operator=(const GridData& orig)
 {
    if (this == &orig)
@@ -25,16 +11,6 @@ GridData& GridData::operator=(const GridData& orig)
    mData = orig.mData;
    mMax = orig.mMax;
    return *this;
-}
-
-void GridData::initialize(double dfltValue)
-{
-   mDfltValue = dfltValue;
-   mMax[0] = theCellSize*theDim[0];
-   mMax[1] = theCellSize*theDim[1];
-   mMax[2] = theCellSize*theDim[2];
-   mData.resize(theDim[0]*theDim[1]*theDim[2], false);
-   std::fill(mData.begin(), mData.end(), mDfltValue);
 }
 
 double& GridData::operator()(int i, int j, int k)
@@ -70,6 +46,21 @@ const double GridData::operator()(int i, int j, int k) const
    int stack = j*theDim[0]*theDim[2];
 
    return mData[col+row+stack];
+}
+
+void GridData::initialize(double dfltValue)
+{
+    mDfltValue = dfltValue;
+    mMax[0] = theCellSize*theDim[0];
+    mMax[1] = theCellSize*theDim[1];
+    mMax[2] = theCellSize*theDim[2];
+    mData.resize(theDim[0]*theDim[1]*theDim[2], false);
+    std::fill(mData.begin(), mData.end(), mDfltValue);
+}
+
+std::vector<double>& GridData::data()
+{
+   return mData;
 }
 
 void GridData::getCell(const vec3& pt, int& i, int& j, int& k)
@@ -257,12 +248,10 @@ double GridData::interpolate(const vec3& pt)
    double tmp = LERP(tmp1234, tmp5678, fractz);
    return tmp;
    */
-
 }
 
-
-double GridData::CINT(double q_i_minus_1, double q_i, double q_i_plus_1, double q_i_plus_2, double x) const {
-
+double GridData::CINT(double q_i_minus_1, double q_i, double q_i_plus_1, double q_i_plus_2, double x) const 
+{
 	// The slopes:
 	double d_i = (q_i_plus_1 - q_i_minus_1) / 2.0;
 	double d_i_plus_1 = (q_i_plus_2 - q_i) / 2.0;
@@ -284,7 +273,6 @@ double GridData::CINT(double q_i_minus_1, double q_i, double q_i_plus_1, double 
 
 	// Done:
 	return q_x;
-
 }
 
 vec3 GridData::worldToSelf(const vec3& pt) const
@@ -296,23 +284,9 @@ vec3 GridData::worldToSelf(const vec3& pt) const
    return out;
 }
 
-GridDataX::GridDataX() : GridData()
-{
-}
-
-GridDataX::~GridDataX()
-{
-}
-
-void GridDataX::initialize(double dfltValue)
-{
-   GridData::initialize(dfltValue);
-   mMax[0] = theCellSize*(theDim[0]+1);
-   mMax[1] = theCellSize*theDim[1];
-   mMax[2] = theCellSize*theDim[2];
-   mData.resize((theDim[0]+1)*theDim[1]*theDim[2], false);
-   std::fill(mData.begin(), mData.end(), mDfltValue);
-}
+//-------------
+// GridDataX //
+//-------------
 
 double& GridDataX::operator()(int i, int j, int k)
 {
@@ -350,6 +324,16 @@ const double GridDataX::operator()(int i, int j, int k) const
    return mData[stack + row + col];
 }
 
+void GridDataX::initialize(double dfltValue)
+{
+   GridData::initialize(dfltValue);
+   mMax[0] = theCellSize*(theDim[0]+1);
+   mMax[1] = theCellSize*theDim[1];
+   mMax[2] = theCellSize*theDim[2];
+   mData.resize((theDim[0]+1)*theDim[1]*theDim[2], false);
+   std::fill(mData.begin(), mData.end(), mDfltValue);
+}
+
 vec3 GridDataX::worldToSelf(const vec3& pt) const
 {   
    vec3 out;
@@ -359,23 +343,9 @@ vec3 GridDataX::worldToSelf(const vec3& pt) const
    return out;
 }
 
-GridDataY::GridDataY() : GridData()
-{
-}
-
-GridDataY::~GridDataY()
-{
-}
-
-void GridDataY::initialize(double dfltValue)
-{
-   GridData::initialize(dfltValue);
-   mMax[0] = theCellSize*theDim[0];
-   mMax[1] = theCellSize*(theDim[1]+1);
-   mMax[2] = theCellSize*theDim[2];
-   mData.resize(theDim[0]*(theDim[1]+1)*theDim[2], false);
-   std::fill(mData.begin(), mData.end(), mDfltValue);
-}
+//-------------
+// GridDataY //
+//-------------
 
 double& GridDataY::operator()(int i, int j, int k)
 {
@@ -413,6 +383,16 @@ const double GridDataY::operator()(int i, int j, int k) const
    return mData[stack + row + col];
 }
 
+void GridDataY::initialize(double dfltValue)
+{
+   GridData::initialize(dfltValue);
+   mMax[0] = theCellSize*theDim[0];
+   mMax[1] = theCellSize*(theDim[1]+1);
+   mMax[2] = theCellSize*theDim[2];
+   mData.resize(theDim[0]*(theDim[1]+1)*theDim[2], false);
+   std::fill(mData.begin(), mData.end(), mDfltValue);
+}
+
 vec3 GridDataY::worldToSelf(const vec3& pt) const
 {
    vec3 out;
@@ -422,23 +402,9 @@ vec3 GridDataY::worldToSelf(const vec3& pt) const
    return out;
 }
 
-GridDataZ::GridDataZ() : GridData()
-{
-}
-
-GridDataZ::~GridDataZ()
-{
-}
-
-void GridDataZ::initialize(double dfltValue)
-{
-   GridData::initialize(dfltValue);
-   mMax[0] = theCellSize*theDim[0];
-   mMax[1] = theCellSize*theDim[1];
-   mMax[2] = theCellSize*(theDim[2]+1);
-   mData.resize(theDim[0]*theDim[1]*(theDim[2]+1), false);
-   std::fill(mData.begin(), mData.end(), mDfltValue);
-}
+//-------------
+// GridDataZ //
+//-------------
 
 double& GridDataZ::operator()(int i, int j, int k)
 {
@@ -476,6 +442,16 @@ const double GridDataZ::operator()(int i, int j, int k) const
    int stack = j*theDim[0]*(theDim[2]+1);
 
    return mData[stack + row + col];
+}
+
+void GridDataZ::initialize(double dfltValue)
+{
+   GridData::initialize(dfltValue);
+   mMax[0] = theCellSize*theDim[0];
+   mMax[1] = theCellSize*theDim[1];
+   mMax[2] = theCellSize*(theDim[2]+1);
+   mData.resize(theDim[0]*theDim[1]*(theDim[2]+1), false);
+   std::fill(mData.begin(), mData.end(), mDfltValue);
 }
 
 vec3 GridDataZ::worldToSelf(const vec3& pt) const
