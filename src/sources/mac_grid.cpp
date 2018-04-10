@@ -119,7 +119,7 @@ void MACGrid::updateSources()
 
 void MACGrid::advectVelocity(double dt)
 {
-	// TODO Section
+	// CHECK Section
 	// Calculate new velocities and store in target and also in mU, mV, mW
 
 	FOR_EACH_FACE 
@@ -154,7 +154,7 @@ void MACGrid::advectVelocity(double dt)
 
 void MACGrid::advectTemperature(double dt)
 {
-	// TODO Section
+	// CHECK Section
 	// Calculate new temp and store in target and mT
 
 	FOR_EACH_CELL 
@@ -170,7 +170,7 @@ void MACGrid::advectTemperature(double dt)
 
 void MACGrid::advectDensity(double dt)
 {
-	// TODO Section
+	// CHECK Section
 	// Calculate new densities and store in target and mD
 
 	FOR_EACH_CELL 
@@ -211,7 +211,8 @@ void MACGrid::addExternalForces(double dt)
 
 void MACGrid::project(double dt)
 {
-	// TODO: Solve Ax = b for pressure
+	// TODO Section
+	// Solve Ax = b for pressure, where x is pressure
 	// 1. Contruct b
 	// 2. Construct A 
 	// 3. Solve for p
@@ -224,9 +225,10 @@ void MACGrid::project(double dt)
 	target.mW = mW;
 
 	// TODO: Your code is here. It solves for a pressure field and modifies target.mU,mV,mW for all faces.
-	//
-	//
-	//
+
+
+
+
 
 	#ifdef _DEBUG
 	// Check border velocities:
@@ -271,7 +273,6 @@ void MACGrid::project(double dt)
 					//target.mV(i,j,k) = 0;
 				}
 			}
-
 		}
 		if (isValidFace(MACGrid::Z, i, j, k)) 
 		{			
@@ -532,7 +533,8 @@ bool MACGrid::preconditionedConjugateGradient(const GridDataMatrix & A, GridData
 
 	/*
 	PrintLine("r: ");
-	FOR_EACH_CELL {
+	FOR_EACH_CELL 
+	{
 		PrintLine(r(i,j,k));
 	}
 	*/
@@ -540,7 +542,8 @@ bool MACGrid::preconditionedConjugateGradient(const GridDataMatrix & A, GridData
 	applyPreconditioner(r, A, z); // Auxillary vector.
 	/*
 	PrintLine("z: ");
-	FOR_EACH_CELL {
+	FOR_EACH_CELL 
+	{
 		PrintLine(z(i,j,k));
 	}
 	*/
@@ -595,46 +598,60 @@ void MACGrid::calculatePreconditioner(const GridDataMatrix & A)
 {
 	precon.initialize();
 
-	// TODO: Build the modified incomplete Cholesky preconditioner following Fig 4.2 on page 36 of Bridson's 2007 SIGGRAPH fluid course notes.
-	//       This corresponds to filling in precon(i,j,k) for all cells
+	// CHECK Section
+	// Build the modified incomplete Cholesky preconditioner, essentially calculate precon(i,j,k) for all cells
+	// Resource: Fig 4.2 on page 36 of Bridson's 2007 SIGGRAPH fluid course notes.
+
+	double tau = 0.97; // Tuning constant.
+	FOR_EACH_CELL 
+	{
+		const double a = A.plusI(i-1,j,k) * precon(i-1,j,k);
+		const double b = A.plusJ(i,j-1,k) * precon(i,j-1,k);
+		const double c = A.plusK(i,j,k-1) * precon(i,j,k-1);
+		const double d = a*a + b*b + c*c;
+
+		const double f = a * (A.plusJ(i-1,j,k) + A.plusK(i-1,j,k)) * precon(i-1,j,k);
+		const double g = b * (A.plusI(i,j-1,k) + A.plusK(i,j-1,k)) * precon(i,j-1,k);
+		const double h = c * (A.plusI(i,j,k-1) + A.plusJ(i,j,k-1)) * precon(i,j,k-1);
+		const double m = d + tau * (f + g + h);
+
+		double e = A.diag(i,j,k) - m;
+		precon(i,j,k) = 1.0 / sqrt(e + DOUBLE_EPSILON);
+	}
 }
 
 void MACGrid::applyPreconditioner(const GridData & r, const GridDataMatrix & A, GridData & z) 
 {
-	// TODO: change if(0) to if(1) after you implement calculatePreconditoner function.
-	if(0) 
+	// Resource: Fig 4.3 on page 37 of Bridson's 2007 SIGGRAPH fluid course notes.
+	// Solve Lq = r for q:
+	GridData q;
+	q.initialize();
+
+	FOR_EACH_CELL 
 	{
-		// APPLY THE PRECONDITIONER:
-		// Solve Lq = r for q:
-		GridData q;
-		q.initialize();
-
-		FOR_EACH_CELL 
+		//if (A.diag(i,j,k) != 0.0) // If cell is a fluid.
 		{
-			//if (A.diag(i,j,k) != 0.0) { // If cell is a fluid.
-			double t = r(i, j, k) - A.plusI(i - 1, j, k) * precon(i - 1, j, k) * q(i - 1, j, k)
-								  - A.plusJ(i, j - 1, k) * precon(i, j - 1, k) * q(i, j - 1, k)
-								  - A.plusK(i, j, k - 1) * precon(i, j, k - 1) * q(i, j, k - 1);
+			const double a = A.plusI(i - 1, j, k) * precon(i - 1, j, k) * q(i - 1, j, k);
+			const double b = A.plusJ(i, j - 1, k) * precon(i, j - 1, k) * q(i, j - 1, k);
+			const double c = A.plusK(i, j, k - 1) * precon(i, j, k - 1) * q(i, j, k - 1);
+
+			double t = r(i, j, k) - (a+b+c);
 			q(i, j, k) = t * precon(i, j, k);
-			//}
-		}
-
-		// Solve L^Tz = q for z:
-		FOR_EACH_CELL_REVERSE 
-		{
-			//if (A.diag(i,j,k) != 0.0) { // If cell is a fluid.
-			double t = q(i, j, k) - A.plusI(i, j, k) * precon(i, j, k) * z(i + 1, j, k)
-								  - A.plusJ(i, j, k) * precon(i, j, k) * z(i, j + 1, k)
-								  - A.plusK(i, j, k) * precon(i, j, k) * z(i, j, k + 1);
-			z(i, j, k) = t * precon(i, j, k);
-			//}
 		}
 	}
-	else
+
+	// Solve L^Tz = q for z:
+	FOR_EACH_CELL_REVERSE 
 	{
-		// Unpreconditioned CG: Bypass preconditioner:
-		z = r;
-		return;
+		//if (A.diag(i,j,k) != 0.0) // If cell is a fluid.
+		{
+			const double a = A.plusI(i, j, k) * precon(i, j, k) * z(i + 1, j, k);
+			const double b = A.plusJ(i, j, k) * precon(i, j, k) * z(i, j + 1, k);
+			const double c = A.plusK(i, j, k) * precon(i, j, k) * z(i, j, k + 1);
+
+			double t = q(i, j, k) - (a+b+c);
+			z(i, j, k) = t * precon(i, j, k);
+		}
 	}
 }
 
