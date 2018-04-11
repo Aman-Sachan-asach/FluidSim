@@ -16,24 +16,22 @@ void SmokeSim::reset()
 
 void SmokeSim::step()
 {
-	double dt = 0.04;//0.1;
-
 	// Step0: Gather user forces
 	mGrid.updateSources();
 
 	// Step1: Calculate new velocities
-	mGrid.advectVelocity(dt);
-	mGrid.addExternalForces(dt);
-	mGrid.project(dt);
+	mGrid.advectVelocity();
+	mGrid.addExternalForces();
+	mGrid.project();
 
 	// Step2: Calculate new temperature
-	mGrid.advectTemperature(dt);
+	mGrid.advectTemperature();
 
 	// Step3: Calculate new density 
-	mGrid.advectDensity(dt);
+	mGrid.advectDensity();
 
 	// Step4: Advect rendering particles
-	mGrid.advectRenderingParticles(dt);
+	mGrid.advectRenderingParticles();
 
 	mTotalFrameNum++;
 }
@@ -87,7 +85,10 @@ void SmokeSim::drawAxes()
 // Code adapted from asst#1 . USING STB_IMAGE_WRITE INSTEAD OF DEVIL.
 void SmokeSim::grabScreen()  
 {
-	if (mFrameNum > 9999) exit(0);
+	if (mFrameNum > 9999)
+	{
+		exit(0);
+	}
 
 	// Save density field to a .bgeo file
 	std::string densityFile = "../records/DensityFrame" + std::to_string(mFrameNum) + ".bgeo";

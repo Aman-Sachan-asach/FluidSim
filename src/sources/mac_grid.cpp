@@ -117,7 +117,7 @@ void MACGrid::updateSources()
 	we get an averaged out value because every timestep we average quantities
 */ 
 
-void MACGrid::advectVelocity(double dt)
+void MACGrid::advectVelocity()
 {
 	// CHECK Section
 	// Calculate new velocities and store in target and also in mU, mV, mW
@@ -127,21 +127,21 @@ void MACGrid::advectVelocity(double dt)
 		if (isValidFace(MACGrid::X, i, j, k)) 
 		{
 			vec3 currentPosition = getFacePosition(MACGrid::X, i, j, k);
-			vec3 rewoundPosition = getRewoundPosition(currentPosition, dt);
+			vec3 rewoundPosition = getRewoundPosition(currentPosition);
 			vec3 newVelocity = getVelocity(rewoundPosition);
 			target.mU(i,j,k) = newVelocity[0];
 		}
 		if (isValidFace(MACGrid::Y, i, j, k)) 
 		{
 			vec3 currentPosition = getFacePosition(MACGrid::Y, i, j, k);
-			vec3 rewoundPosition = getRewoundPosition(currentPosition, dt);
+			vec3 rewoundPosition = getRewoundPosition(currentPosition);
 			vec3 newVelocity = getVelocity(rewoundPosition);
 			target.mV(i,j,k) = newVelocity[1];
 		}
 		if (isValidFace(MACGrid::Z, i, j, k)) 
 		{
 			vec3 currentPosition = getFacePosition(MACGrid::Z, i, j, k);
-			vec3 rewoundPosition = getRewoundPosition(currentPosition, dt);
+			vec3 rewoundPosition = getRewoundPosition(currentPosition);
 			vec3 newVelocity = getVelocity(rewoundPosition);
 			target.mW(i,j,k) = newVelocity[2];
 		}
@@ -152,7 +152,7 @@ void MACGrid::advectVelocity(double dt)
 	mW = target.mW;
 }
 
-void MACGrid::advectTemperature(double dt)
+void MACGrid::advectTemperature()
 {
 	// CHECK Section
 	// Calculate new temp and store in target and mT
@@ -160,7 +160,7 @@ void MACGrid::advectTemperature(double dt)
 	FOR_EACH_CELL 
 	{
 		vec3 currentPosition = getCenter(i,j,k);
-		vec3 rewoundPosition = getRewoundPosition(currentPosition, dt);
+		vec3 rewoundPosition = getRewoundPosition(currentPosition);
 		double newTemperature = getTemperature(rewoundPosition);
 		target.mT(i,j,k) = newTemperature;
 	}
@@ -168,7 +168,7 @@ void MACGrid::advectTemperature(double dt)
 	mT = target.mT;
 }
 
-void MACGrid::advectDensity(double dt)
+void MACGrid::advectDensity()
 {
 	// CHECK Section
 	// Calculate new densities and store in target and mD
@@ -176,7 +176,7 @@ void MACGrid::advectDensity(double dt)
 	FOR_EACH_CELL 
 	{
 		vec3 currentPosition = getCenter(i,j,k);
-		vec3 rewoundPosition = getRewoundPosition(currentPosition, dt);
+		vec3 rewoundPosition = getRewoundPosition(currentPosition);
 		double newDensity = getDensity(rewoundPosition);
 		target.mD(i,j,k) = newDensity;
 	}
@@ -184,7 +184,7 @@ void MACGrid::advectDensity(double dt)
 	mD = target.mD;
 }
 
-void MACGrid::advectRenderingParticles(double dt) 
+void MACGrid::advectRenderingParticles() 
 {
 	rendering_particles_vel.resize(rendering_particles.size());
 	for (size_t p = 0; p < rendering_particles.size(); p++) 
@@ -203,13 +203,73 @@ void MACGrid::advectRenderingParticles(double dt)
 	}
 }
 
-void MACGrid::addExternalForces(double dt)
+void MACGrid::addExternalForces()
 {
-	computeBouyancy(dt);
-	computeVorticityConfinement(dt);
+	computeBouyancy();
+	computeVorticityConfinement();
 }
 
-void MACGrid::project(double dt)
+void MACGrid::setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec3& pLow, vec3& pHigh )
+{
+	if (isValidFace(MACGrid::X, i, j, k)) 
+	{
+		if (i-1 >= 0 && i < theDim[MACGrid::X]) 
+		{
+			pLow[0]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			pHigh[0] = p(i,j,k);
+		}
+		else if (i-1 < 0)
+		{
+			pLow[0]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			pHigh[0] = p(i,j,k);
+		}
+		else if (i >= theDim[MACGrid::X])
+		{
+			pLow[0]  = p(i-1,j,k);
+			pHigh[0] = p(i-1,j,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
+		}
+	}
+	
+	if (isValidFace(MACGrid::Y, i, j, k)) 
+	{
+		if (j-1 >= 0 && j < theDim[MACGrid::Y]) 
+		{
+			pLow[1]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			pHigh[1] = p(i,j,k);
+		}
+		else if (j-1 < 0)
+		{
+			pLow[1]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			pHigh[1] = p(i,j,k);
+		}
+		else if (j >= theDim[MACGrid::Y])
+		{
+			pLow[1]  = p(i,j-1,k);
+			pHigh[1] = p(i,j-1,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
+		}
+	}
+	
+	if (isValidFace(MACGrid::Z, i, j, k)) 
+	{
+		if (k-1 >= 0 && k < theDim[MACGrid::Z]) 
+		{
+			pLow[2]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			pHigh[2] = p(i,j,k);
+		}
+		else if (k-1 < 0)
+		{
+			pLow[2]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			pHigh[2] = p(i,j,k);
+		}
+		else if (k >= theDim[MACGrid::Z])
+		{
+			pLow[2]  = p(i,j,k-1);
+			pHigh[2] = p(i,j,k-1) + solidBoundaryConstant * (mU(i,j,k) - 0);
+		}
+	}
+}
+
+void MACGrid::project()
 {
 	/*
 		Resource: Section 4.3 on page 29 of Bridson's 2007 SIGGRAPH fluid course notes.
@@ -300,201 +360,29 @@ void MACGrid::project(double dt)
 	FOR_EACH_FACE 
 	{
 		// Initialize the pressure values to 0.
-		double pLowX  = 0.0;
-		double pHighX = 0.0;
-		double pLowY  = 0.0;
-		double pHighY = 0.0;
-		double pLowZ  = 0.0;
-		double pHighZ = 0.0;
+		vec3 pLow  = vec3(0.0, 0.0, 0.0);
+		vec3 pHigh = vec3(0.0, 0.0, 0.0);
 
-		const double solidBoundaryConstant = (fluidDensity * gridCellSize) / dt; // why not squared instead of just gridCellSize
 		const double deltaT_By_Density = dt / fluidDensity; // Bottom of page 27 in course notes
-		
-		if (isValidFace(MACGrid::X, i, j, k)) 
-		{
-			// if (i == 0) 
-			// {
-			// 	pLowX  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
-			// 	pHighX = p(i,j,k);
-			// }
-			// else if (i >= theDim[MACGrid::X])
-			// {
-			// 	pLowX  = p(i-1,j,k);
-			// 	pHighX = p(i-1,j,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
-			// }
-			// else
-			// {
-			// 	pLowX  = p(i-1,j,k);
-			// 	pHighX = p(i,j,k);
-			// }
-			if (i-1 >= 0) {
-				pLowX = p(i-1,j,k);//p(cellLowX);
-			}
-
-			if (i < theDim[MACGrid::X]) {
-				pHighX = p(i,j,k);//p(cellHighX);
-			} else {
-				
-			}
-
-			if (i-1 < 0) {
-				pLowX = pHighX - solidBoundaryConstant * (mU(i,j,k) - 0);
-			}
-
-			if (i >= theDim[MACGrid::X]) {
-				pHighX = pLowX + solidBoundaryConstant * (mU(i,j,k) - 0);
-			}
-		}
-		if (isValidFace(MACGrid::Y, i, j, k)) 
-		{
-			// if (j == 0) 
-			// {
-			// 	pLowY  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
-			// 	pHighY = p(i,j,k);
-			// }
-			// else if (j >= theDim[MACGrid::Y])
-			// {
-			// 	pLowY  = p(i,j-1,k);
-			// 	pHighY = p(i,j-1,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
-			// }
-			// else
-			// {
-			// 	pLowY  = p(i,j-1,k);
-			// 	pHighY = p(i,j,k);
-			// }
-
-			if (j-1 >= 0) {
-				pLowY = p(i,j-1,k);//p(cellLowY);
-			}
-
-			if (j < theDim[MACGrid::Y]) {
-				pHighY = p(i,j,k);//p(cellHighY);
-			}
-
-			if (j-1 < 0) {
-				pLowY = pHighY - solidBoundaryConstant * (mV(i,j,k) - 0);
-			}
-
-			if (j >= theDim[MACGrid::Y]) {
-				pHighY = pLowY + solidBoundaryConstant * (mV(i,j,k) - 0);
-			}
-		}
-		if (isValidFace(MACGrid::Z, i, j, k)) 
-		{
-			// if (k == 0) 
-			// {
-			// 	pLowZ  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
-			// 	pHighZ = p(i,j,k);
-			// }
-			// else if (k >= theDim[MACGrid::Z])
-			// {
-			// 	pLowZ  = p(i,j,k-1);
-			// 	pHighZ = p(i,j,k-1) + solidBoundaryConstant * (mU(i,j,k) - 0);
-			// }
-			// else
-			// {
-			// 	pLowZ  = p(i,j,k-1);
-			// 	pHighZ = p(i,j,k);
-			// }
-
-			if (k-1 >= 0) {
-				pLowZ = p(i,j,k-1);//p(cellLowZ);
-			}
-
-			if (k < theDim[MACGrid::Z]) {
-				pHighZ = p(i,j,k);//p(cellHighZ);
-			}
-
-			if (k-1 < 0) {
-				pLowZ = pHighZ - solidBoundaryConstant * (mW(i,j,k) - 0);
-			}
-
-			if (k >= theDim[MACGrid::Z]) {
-				pHighZ = pLowZ + solidBoundaryConstant * (mW(i,j,k) - 0);
-			}
-		}
-
+		setPressureHighLow( i, j, k, p, pLow, pHigh );
 
 		// Update the velocities:
 		if (isValidFace(MACGrid::X, i, j, k)) 
 		{
-			target.mU(i,j,k) = mU(i,j,k) - deltaT_By_Density * (pHighX - pLowX) / gridCellSize;
+			target.mU(i,j,k) = mU(i,j,k) - deltaT_By_Density * (pHigh[0] - pLow[0]) / gridCellSize;
 		}
 		if (isValidFace(MACGrid::Y, i, j, k)) 
 		{
-			target.mV(i,j,k) = mV(i,j,k) - deltaT_By_Density * (pHighY - pLowY) / gridCellSize;
+			target.mV(i,j,k) = mV(i,j,k) - deltaT_By_Density * (pHigh[1] - pLow[1]) / gridCellSize;
 		}
 		if (isValidFace(MACGrid::Z, i, j, k)) 
 		{
-			target.mW(i,j,k) = mW(i,j,k) - deltaT_By_Density * (pHighZ - pLowZ) / gridCellSize;
+			target.mW(i,j,k) = mW(i,j,k) - deltaT_By_Density * (pHigh[2] - pLow[2]) / gridCellSize;
 		}
 	}
 
 	#ifdef _DEBUG
-	// Check border velocities:
-	FOR_EACH_FACE 
-	{
-		if (isValidFace(MACGrid::X, i, j, k)) 
-		{
-			if (i == 0) 
-			{
-				if (abs(target.mU(i,j,k)) > 0.0000001) 
-				{
-					PrintLine( "LOW X:  " << target.mU(i,j,k) );
-					//target.mU(i,j,k) = 0;
-				}
-			}
-
-			if (i == theDim[MACGrid::X]) 
-			{
-				if (abs(target.mU(i,j,k)) > 0.0000001) 
-				{
-					PrintLine( "HIGH X: " << target.mU(i,j,k) );
-					//target.mU(i,j,k) = 0;
-				}
-			}
-		}
-		if (isValidFace(MACGrid::Y, i, j, k)) 
-		{
-			if (j == 0) 
-			{
-				if (abs(target.mV(i,j,k)) > 0.0000001) 
-				{
-					PrintLine( "LOW Y:  " << target.mV(i,j,k) );
-					//target.mV(i,j,k) = 0;
-				}
-			}
-
-			if (j == theDim[MACGrid::Y]) 
-			{
-				if (abs(target.mV(i,j,k)) > 0.0000001) 
-				{
-					PrintLine( "HIGH Y: " << target.mV(i,j,k) );
-					//target.mV(i,j,k) = 0;
-				}
-			}
-		}
-		if (isValidFace(MACGrid::Z, i, j, k)) 
-		{			
-			if (k == 0) 
-			{
-				if (abs(target.mW(i,j,k)) > 0.0000001) 
-				{
-					PrintLine( "LOW Z:  " << target.mW(i,j,k) );
-					//target.mW(i,j,k) = 0;
-				}
-			}
-
-			if (k == theDim[MACGrid::Z]) 
-			{
-				if (abs(target.mW(i,j,k)) > 0.0000001) 
-				{
-					PrintLine( "HIGH Z: " << target.mW(i,j,k) );
-					//target.mW(i,j,k) = 0;
-				}
-			}
-		}
-	}
+		checkBorderVelocities(i, j, k);
 	#endif
 
 	// Then save the result to our object
@@ -530,7 +418,7 @@ void MACGrid::project(double dt)
 // Simulation //
 //--------------
 
-void MACGrid::computeBouyancy(double dt)
+void MACGrid::computeBouyancy()
 {
 	// CHECK Section 
 	// Resource: At the end of section 2, in the Paper titled Visual Simulation of Smoke.
@@ -553,7 +441,7 @@ void MACGrid::computeBouyancy(double dt)
 	mV = target.mV;
 }
 
-void MACGrid::computeVorticityConfinement(double dt)
+void MACGrid::computeVorticityConfinement()
 {
 	// CHECK Section 
 	// Calculate vorticity confinement forces and apply the forces to the current velocity
@@ -622,7 +510,7 @@ void MACGrid::computeVorticityConfinement(double dt)
 // Miscellaneous Helpers //
 //-------------------------
 
-vec3 MACGrid::getRewoundPosition(const vec3 & currentPosition, const double dt) 
+vec3 MACGrid::getRewoundPosition(const vec3 & currentPosition) 
 {
 	/*
 	// EULER (RK1):
@@ -1460,4 +1348,79 @@ bool MACGrid::isValidFace(int dimension, int i, int j, int k)
 	}
 
 	return true;
+}
+
+void MACGrid::checkBorderVelocities(int& i, int& j, int& k)
+{
+	std::ostringstream num_str;
+
+	FOR_EACH_FACE 
+	{
+		if (isValidFace(MACGrid::X, i, j, k)) 
+		{
+			if (i == 0) 
+			{
+				if (abs(target.mU(i,j,k)) > 0.0000001) 
+				{
+					num_str << "LOW X:  " << target.mU(i,j,k);
+					PrintLine( num_str.str() );
+					//target.mU(i,j,k) = 0;
+				}
+			}
+
+			if (i == theDim[MACGrid::X]) 
+			{
+				if (abs(target.mU(i,j,k)) > 0.0000001) 
+				{
+					num_str << "HIGH X: " << target.mU(i,j,k);
+					PrintLine( num_str.str() );
+					//target.mU(i,j,k) = 0;
+				}
+			}
+		}
+		if (isValidFace(MACGrid::Y, i, j, k)) 
+		{
+			if (j == 0) 
+			{
+				if (abs(target.mV(i,j,k)) > 0.0000001) 
+				{
+					num_str << "LOW Y:  " << target.mV(i,j,k);
+					PrintLine( num_str.str() );
+					//target.mV(i,j,k) = 0;
+				}
+			}
+
+			if (j == theDim[MACGrid::Y]) 
+			{
+				if (abs(target.mV(i,j,k)) > 0.0000001) 
+				{
+					num_str << "HIGH Y: " << target.mV(i,j,k);
+					PrintLine( num_str.str() );
+					//target.mV(i,j,k) = 0;
+				}
+			}
+		}
+		if (isValidFace(MACGrid::Z, i, j, k)) 
+		{			
+			if (k == 0) 
+			{
+				if (abs(target.mW(i,j,k)) > 0.0000001) 
+				{
+					num_str << "LOW Z:  " << target.mV(i,j,k);
+					PrintLine( num_str.str() );
+					//target.mW(i,j,k) = 0;
+				}
+			}
+
+			if (k == theDim[MACGrid::Z]) 
+			{
+				if (abs(target.mW(i,j,k)) > 0.0000001) 
+				{
+					num_str << "HIGH Z: " << target.mV(i,j,k);
+					PrintLine( num_str.str() );
+					//target.mW(i,j,k) = 0;
+				}
+			}
+		}
+	}
 }

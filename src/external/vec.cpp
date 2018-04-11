@@ -151,7 +151,6 @@ double Dot(const vec2& a, const vec2& b)
 ****************************************************************/
 
 // CONSTRUCTORS
-
 vec3::vec3() 
 {
 }

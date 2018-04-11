@@ -5,7 +5,8 @@
 #include <map>
 #include <stdio.h>
 #include <cstdlib>
-#include <fstream> 
+#include <fstream>
+#include <sstream>
 
 #include "../external/vec.h"
 #include "globals.h"
@@ -36,14 +37,14 @@ public:
 	void updateSources();
 
 	// Advection	
-	void advectVelocity(double dt);
-	void advectTemperature(double dt);
-	void advectDensity(double dt);
-	void advectRenderingParticles(double dt);
+	void advectVelocity();
+	void advectTemperature();
+	void advectDensity();
+	void advectRenderingParticles();
 
 	// External Forces and Projection
-	void addExternalForces(double dt);
-	void project(double dt);
+	void addExternalForces();
+	void project();
 
 	// Save Functions
 	void saveSmoke(const char* fileName);
@@ -52,12 +53,14 @@ public:
 
 protected:
 	// Simulation
-	void computeBouyancy(double dt);
-	void computeVorticityConfinement(double dt);
+	void computeBouyancy();
+	void computeVorticityConfinement();
 
 	// Helper Functions
-	vec3 getRewoundPosition(const vec3 & currentPosition, const double dt);
+	vec3 getRewoundPosition(const vec3 & currentPosition);
 	vec3 clipToGrid(const vec3& outsidePoint, const vec3& insidePoint);
+
+	void setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec3& pLow, vec3& pHigh );
 
 	double getSize(int dimension);
 	int getCellIndex(int i, int j, int k);
@@ -106,6 +109,7 @@ protected:
 	// Validation
 	bool isValidCell(int i, int j, int k);
 	bool isValidFace(int dimension, int i, int j, int k);
+	void checkBorderVelocities(int& i, int& j, int& k);
 
 protected:
 	GridDataX mU; // X component of velocity, stored on X faces, size is (dimX+1)*dimY*dimZ

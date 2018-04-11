@@ -6,14 +6,12 @@
 
 using namespace std;
 
-enum {VX, VY, VZ, VW};		    // axes
-enum {PA, PB, PC, PD};		    // planes
-enum {RED, GREEN, BLUE};	    // colors
-enum {KA, KD, KS, ES};		    // phong coefficients
+enum { VX, VY, VZ, VW };		// axes
+enum { PA, PB, PC, PD };		// planes
+enum { RED, GREEN, BLUE };	 	// colors
+enum { KA, KD, KS, ES };		// phong coefficients
 
 //////////////////////////////////////////////////////////////////////////
-//PI
-//
 #ifndef M_PI
 const double M_PI = 3.14159265358979323846f;		// per CRC handbook, 14th. ed.
 #endif
@@ -52,11 +50,9 @@ class mat3;
 class vec2
 {
 protected:
-
 	double n[2];
 
 public:
-
 	// Constructors
 	vec2();
 	vec2(const double x, const double y);
@@ -100,11 +96,9 @@ public:
 class vec3
 {
 public:
-
 	double n[3];
 
 public:
-
 	// Constructors
 	vec3();
 	vec3(const double x, const double y, const double z);
@@ -118,7 +112,7 @@ public:
 	vec3& operator /= ( const double d );	    // division by a constant
 	double& operator [] ( int i);				// indexing
 	double operator[] (int i) const;				// read-only indexing
-   void set(const double x, const double y, const double z); 
+	void set(const double x, const double y, const double z); 
 
 	// special functions
 	double Length() const;				// length of a vec3
@@ -141,7 +135,7 @@ public:
 	friend double Dot(const vec3& a, const vec3& b);			// dot product
 	friend double Distance(const vec3& a, const vec3& b);  // distance
 	friend double DistanceSqr(const vec3& a, const vec3& b);  // distance sqr
-   void Print(const char* title) const;
+	void Print(const char* title) const;
 };
 
 const vec3 axisX(1.0f, 0.0f, 0.0f);
@@ -151,8 +145,8 @@ const vec3 vec3Zero(0.0f, 0.0f, 0.0f);
 
 inline ostream& operator << (ostream& ostrm, const vec3& v)
 {
-   ostrm << "(" << v[0] << ", " << v[1] << ", " << v[2] << ") ";
-   return ostrm;
+	ostrm << "(" << v[0] << ", " << v[1] << ", " << v[2] << ") ";
+	return ostrm;
 }
 
 
@@ -170,7 +164,7 @@ public:
 	vec4& operator	= ( const vec4& v );	    // assignment of a vec3
 	double& operator [] ( int i);				// indexing
 	double operator[] (int i) const;				// read-only indexing
-   void set(const double x, const double y, const double z, const double w); 
+	void set(const double x, const double y, const double z, const double w); 
 
 	// friends
 	friend vec4 operator - (const vec4& v);					// -v1
@@ -180,6 +174,5 @@ public:
 	friend vec4 operator * (const double d, const vec4& a);	// 3.0 * v1
 	friend vec4 operator * (const vec4& a, const vec4& b); // piecewise muliply
 
-   void Print(const char* title) const;
-
+	void Print(const char* title) const;
 };

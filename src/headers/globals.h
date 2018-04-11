@@ -20,12 +20,18 @@ const int theDim[3] = {12, 12, 1};
 
 // Simulation Controls
 const int    millisecondsPerFrame       = 10;
+const double dt                         = 0.04;
+
 const double gridCellSize               = 0.5;
+const double One_By_gridCellSize        = 1.0/gridCellSize;
+
 const double fluidDensity               = 1.0;
 const double buoyancyAlpha              = 0.08; // Gravity's effect on the smoke particles.
 const double buoyancyBeta               = 0.37; // Buoyancy's effect due to temperature difference.	
 const double buoyancyAmbientTemperature = 0.0;  // Ambient temperature.
 const double vorticityEpsilon 		    = 0.10;
+
+const double solidBoundaryConstant = (fluidDensity * gridCellSize) / dt; // why not squared instead of just gridCellSize
 
 // Used for math operations and constants that aren't included in the C++ standard library.
 const double PI =					3.1415926535897932384626422832795028841971;
