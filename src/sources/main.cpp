@@ -8,8 +8,8 @@
 #include "../headers/timer.h" 
 
 // Geometry and whatnot
-SmokeSim smokeSim;
-Camera camera;
+SmokeSim   smokeSim;
+Camera     camera;
 FpsTracker FPS_Tracker;
 
 // UI Helpers
@@ -24,9 +24,9 @@ int savedHeight = 0;
 
 void initCamera()
 {
-    double w = theDim[0]*theCellSize;   
-    double h = theDim[1]*theCellSize;   
-    double d = theDim[2]*theCellSize;   
+    double w = theDim[0]*gridCellSize;   
+    double h = theDim[1]*gridCellSize;   
+    double d = theDim[2]*gridCellSize;   
     double angle = 0.5 * camera.dfltVfov * PI/180.0;
     double dist;
     if (w > h) dist = w*0.5/std::tan(angle);  // aspect is 1, so i can do this
@@ -123,8 +123,11 @@ void onKeyboardSpecialCb(int key, int x, int y)
 
 void onTimerCb(int value)
 {
-    if (isRunning) smokeSim.step();
-    glutTimerFunc(theMillisecondsPerFrame, onTimerCb, 0);
+    if (isRunning)
+    {
+        smokeSim.step();
+    }
+    glutTimerFunc(millisecondsPerFrame, onTimerCb, 0);
     glutPostRedisplay();
 }
 
@@ -213,7 +216,7 @@ int main(int argc, char **argv)
     glutSpecialFunc(onKeyboardSpecialCb);
     glutMouseFunc(onMouseCb);
     glutMotionFunc(onMouseMotionCb); 
-    glutTimerFunc(theMillisecondsPerFrame, onTimerCb, 0); 
+    glutTimerFunc(millisecondsPerFrame, onTimerCb, 0); 
     glutReshapeFunc(onResizeCb);
 
     int viewMenu = glutCreateMenu(onMenuCb);

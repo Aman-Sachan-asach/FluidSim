@@ -83,12 +83,12 @@ void MACGrid::updateSources()
 		{
 			for (int k = 0; k <= 0; k++) 
 			{
-				vec3 cell_center(theCellSize*(i+0.5), theCellSize*(j+0.5), theCellSize*(k+0.5));
+				vec3 cell_center(gridCellSize*(i+0.5), gridCellSize*(j+0.5), gridCellSize*(k+0.5));
 				for(int p=0; p<10; p++) 
 				{
-					double a = ((float) rand() / RAND_MAX - 0.5) * theCellSize;
-					double b = ((float) rand() / RAND_MAX - 0.5) * theCellSize;
-					double c = ((float) rand() / RAND_MAX - 0.5) * theCellSize;
+					double a = ((float) rand() / RAND_MAX - 0.5) * gridCellSize;
+					double b = ((float) rand() / RAND_MAX - 0.5) * gridCellSize;
+					double c = ((float) rand() / RAND_MAX - 0.5) * gridCellSize;
 					vec3 shift(a, b, c);
 					vec3 xp = cell_center + shift;
 					rendering_particles.push_back(xp);
@@ -237,8 +237,8 @@ void MACGrid::project(double dt)
 			Subtract pressure from our velocity and save in target
 	*/
 
-	// TODO Section
-	const double constant = dt / (theAirDensity * (theCellSize * theCellSize * theCellSize)); // changed from square to cube
+	// CHECK Section
+	const double constant = dt / (fluidDensity * (gridCellSize * gridCellSize * gridCellSize)); // changed from square to cube
 
 	GridData p = GridData();
 	GridData d = GridData();
@@ -247,11 +247,11 @@ void MACGrid::project(double dt)
 	FOR_EACH_CELL 
 	{
 		// Construct the vector of divergences d:
-		double vel_LowX = mU(i,j,k);
+		double vel_LowX  = mU(i,j,k);
 		double vel_HighX = mU(i+1,j,k);
-		double vel_LowY = mV(i,j,k);
+		double vel_LowY  = mV(i,j,k);
 		double vel_HighY = mV(i,j+1,k);
-		double vel_LowZ = mW(i,j,k);
+		double vel_LowZ  = mW(i,j,k);
 		double vel_HighZ = mW(i,j,k+1);
 
 		// Use 0 for solid boundary velocities:
@@ -281,7 +281,7 @@ void MACGrid::project(double dt)
 			vel_HighZ = 0;
 		}
 
-		double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / theCellSize;
+		double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / gridCellSize;
 		d(i,j,k) = -divergence; //d(currentCell) = -divergence;
 	}
 
@@ -307,8 +307,8 @@ void MACGrid::project(double dt)
 		double pLowZ  = 0.0;
 		double pHighZ = 0.0;
 
-		const double solidBoundaryConstant = (theAirDensity * theCellSize * theCellSize) / dt; //squared instead of just theCellSize
-		const double deltaT_By_Density = dt / theAirDensity; // Bottom of page 27 in course notes
+		const double solidBoundaryConstant = (fluidDensity * gridCellSize * gridCellSize) / dt; //squared instead of just gridCellSize
+		const double deltaT_By_Density = dt / fluidDensity; // Bottom of page 27 in course notes
 		
 		if (isValidFace(MACGrid::X, i, j, k)) 
 		{
@@ -369,15 +369,15 @@ void MACGrid::project(double dt)
 		// Update the velocities:
 		if (isValidFace(MACGrid::X, i, j, k)) 
 		{
-			target.mU(i,j,k) = mU(i,j,k) - deltaT_By_Density * (pHighX - pLowX) / theCellSize;
+			target.mU(i,j,k) = mU(i,j,k) - deltaT_By_Density * (pHighX - pLowX) / gridCellSize;
 		}
 		if (isValidFace(MACGrid::Y, i, j, k)) 
 		{
-			target.mV(i,j,k) = mV(i,j,k) - deltaT_By_Density * (pHighY - pLowY) / theCellSize;
+			target.mV(i,j,k) = mV(i,j,k) - deltaT_By_Density * (pHighY - pLowY) / gridCellSize;
 		}
 		if (isValidFace(MACGrid::Z, i, j, k)) 
 		{
-			target.mW(i,j,k) = mW(i,j,k) - deltaT_By_Density * (pHighZ - pLowZ) / theCellSize;
+			target.mW(i,j,k) = mW(i,j,k) - deltaT_By_Density * (pHighZ - pLowZ) / gridCellSize;
 		}
 	}
 
@@ -460,13 +460,13 @@ void MACGrid::project(double dt)
 	FOR_EACH_CELL 
 	{
 		// Construct the vector of divergences d:
-		double vel_LowX = mU(i,j,k);
+		double vel_LowX  = mU(i,j,k);
 		double vel_HighX = mU(i+1,j,k);
-		double vel_LowY = mV(i,j,k);
+		double vel_LowY  = mV(i,j,k);
 		double vel_HighY = mV(i,j+1,k);
-		double vel_LowZ = mW(i,j,k);
+		double vel_LowZ  = mW(i,j,k);
 		double vel_HighZ = mW(i,j,k+1);
-		double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / theCellSize;
+		double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / gridCellSize;
 		if (abs(divergence) > 0.02 ) 
 		{
 			PrintLine("WARNING: Divergent! ");
@@ -484,39 +484,86 @@ void MACGrid::project(double dt)
 void MACGrid::computeBouyancy(double dt)
 {
 	// CHECK Section 
+	// Resource: At the end of section 2, in the Paper titled Visual Simulation of Smoke.
+	// (http://physbam.stanford.edu/~fedkiw/papers/stanford2001-01.pdf)
 	// Calculate bouyancy and store in target
 
-	// TODO: Get rid of this line after you implement yours
-	target.mV = mV;
+	const double ambientTemperature = 0.0;
 
-	// TODO: Your code is here. It modifies target.mV for all y face velocities.
-	//
-	//
-	//
+	FOR_EACH_FACE 
+	{
+		if (isValidFace(MACGrid::Y, i, j, k)) 
+		{
+			vec3 position = getFacePosition(MACGrid::Y, i, j, k);
+			double deltaTemperature = getTemperature(position) - ambientTemperature;
+			double buoyancyForce = -buoyancyAlpha * getDensity(position) + buoyancyBeta * deltaTemperature;
+			target.mV(i,j,k) = mV(i,j,k) + buoyancyForce;
+		}
+	}
 
-	// and then save the result to our object
 	mV = target.mV;
 }
 
 void MACGrid::computeVorticityConfinement(double dt)
 {
 	// CHECK Section 
-	// Calculate vorticity confinement forces
-
-	// Apply the forces to the current velocity and store the result in target
+	// Calculate vorticity confinement forces and apply the forces to the current velocity
 	// STARTED.
 
-	// TODO: Get rid of this line after you implement yours
+	// Save these values
 	target.mU = mU;
 	target.mV = mV;
 	target.mW = mW;
 
-	// TODO: Your code is here. It modifies target.mU,mV,mW for all faces.
-	//
-	//
-	//
+	GridData tempX = GridData();
+	GridData tempY = GridData();
+	GridData tempZ = GridData();
+	GridData tempM = GridData();
 
-	// Then save the result to our object
+	const double One_By_twoDeltaCellSize = (2.0 * gridCellSize);
+
+	FOR_EACH_CELL 
+	{
+		const double a = (mW(i,j+1,k) - mW(i,j-1,k))  -  (mV(i,j,k+1) - mV(i,j,k-1));
+		const double b = (mU(i,j,k+1) - mU(i,j,k-1))  -  (mW(i+1,j,k) - mW(i-1,j,k));
+		const double c = (mV(i+1,j,k) - mV(i-1,j,k))  -  (mU(i,j+1,k) - mU(i,j-1,k));
+
+		double vorticityX = a * One_By_twoDeltaCellSize;
+		double vorticityY = b * One_By_twoDeltaCellSize;
+		double vorticityZ = c * One_By_twoDeltaCellSize;
+		vec3 vorticity(vorticityX, vorticityY, vorticityZ);
+		// vorticity.Normalize();
+
+		// Store the vorticity (as separate components) and also store the magnitude of the vorticity:
+		tempX(i,j,k) = vorticityX;
+		tempY(i,j,k) = vorticityY;
+		tempZ(i,j,k) = vorticityZ;
+		tempM(i,j,k) = vorticity.Length();
+	}
+
+	FOR_EACH_CELL 
+	{
+		const double gradientX = (tempM(i+1,j,k) - tempM(i-1,j,k)) * One_By_twoDeltaCellSize;
+		const double gradientY = (tempM(i,j+1,k) - tempM(i,j-1,k)) * One_By_twoDeltaCellSize;
+		const double gradientZ = (tempM(i,j,k+1) - tempM(i,j,k-1)) * One_By_twoDeltaCellSize;
+		vec3 gradient(gradientX, gradientY, gradientZ);
+		gradient.Normalize();
+		
+		// Get the stored vorticity:
+		vec3 vorticity(tempX(i,j,k), tempY(i,j,k), tempZ(i,j,k));
+
+		// Calculate the confinement force:
+		vec3 fConf = vorticityEpsilon * gridCellSize * (gradient.Cross(vorticity));
+
+		// Spread fConf to the surrounding faces:
+		if (isValidFace(0, i,j,k))   target.mU(i,j,k)   += fConf[0] / 2.0;
+		if (isValidFace(0, i+1,j,k)) target.mU(i+1,j,k) += fConf[0] / 2.0;
+		if (isValidFace(1, i,j,k))   target.mV(i,j,k)   += fConf[1] / 2.0;
+		if (isValidFace(1, i,j+1,k)) target.mV(i,j+1,k) += fConf[1] / 2.0;
+		if (isValidFace(1, i,j,k))   target.mW(i,j,k)   += fConf[2] / 2.0;
+		if (isValidFace(1, i,j,k+1)) target.mW(i,j,k+1) += fConf[2] / 2.0;
+	}
+
 	mU = target.mU;
 	mV = target.mV;
 	mW = target.mW;
@@ -585,7 +632,7 @@ vec3 MACGrid::clipToGrid(const vec3& outsidePoint, const vec3& insidePoint)
 
 double MACGrid::getSize(int dimension) 
 {
-	return theDim[dimension] * theCellSize;
+	return theDim[dimension] * gridCellSize;
 }
 
 int MACGrid::getCellIndex(int i, int j, int k)
@@ -602,15 +649,15 @@ vec3 MACGrid::getFacePosition(int dimension, int i, int j, int k)
 {
 	if (dimension == 0) 
 	{
-		return vec3(i * theCellSize, (j + 0.5) * theCellSize, (k + 0.5) * theCellSize);
+		return vec3(i * gridCellSize, (j + 0.5) * gridCellSize, (k + 0.5) * gridCellSize);
 	} 
 	else if (dimension == 1) 
 	{
-		return vec3((i + 0.5) * theCellSize, j * theCellSize, (k + 0.5) * theCellSize);
+		return vec3((i + 0.5) * gridCellSize, j * gridCellSize, (k + 0.5) * gridCellSize);
 	} 
 	else if (dimension == 2) 
 	{
-		return vec3((i + 0.5) * theCellSize, (j + 0.5) * theCellSize, k * theCellSize);
+		return vec3((i + 0.5) * gridCellSize, (j + 0.5) * gridCellSize, k * gridCellSize);
 	}
 
 	return vec3(0,0,0);
@@ -740,21 +787,24 @@ void MACGrid::calculatePreconditioner(const GridDataMatrix & A)
 	// Build the modified incomplete Cholesky preconditioner, essentially calculate precon(i,j,k) for all cells
 	// Resource: Fig 4.2 on page 36 of Bridson's 2007 SIGGRAPH fluid course notes.
 
-	double tau = 0.97; // Tuning constant.
+	const double tau = 0.97; // Tuning constant.
 	FOR_EACH_CELL 
 	{
-		const double a = A.plusI(i-1,j,k) * precon(i-1,j,k);
-		const double b = A.plusJ(i,j-1,k) * precon(i,j-1,k);
-		const double c = A.plusK(i,j,k-1) * precon(i,j,k-1);
-		const double d = a*a + b*b + c*c;
+		//if (A.diag(i,j,k) != 0.0)  // If cell is a fluid... put in check later for more complex scenes
+		{
+			const double a = A.plusI(i-1,j,k) * precon(i-1,j,k);
+			const double b = A.plusJ(i,j-1,k) * precon(i,j-1,k);
+			const double c = A.plusK(i,j,k-1) * precon(i,j,k-1);
+			const double d = a*a + b*b + c*c;
 
-		const double f = a * (A.plusJ(i-1,j,k) + A.plusK(i-1,j,k)) * precon(i-1,j,k);
-		const double g = b * (A.plusI(i,j-1,k) + A.plusK(i,j-1,k)) * precon(i,j-1,k);
-		const double h = c * (A.plusI(i,j,k-1) + A.plusJ(i,j,k-1)) * precon(i,j,k-1);
-		const double m = d + tau * (f + g + h);
+			const double f = a * (A.plusJ(i-1,j,k) + A.plusK(i-1,j,k)) * precon(i-1,j,k);
+			const double g = b * (A.plusI(i,j-1,k) + A.plusK(i,j-1,k)) * precon(i,j-1,k);
+			const double h = c * (A.plusI(i,j,k-1) + A.plusJ(i,j,k-1)) * precon(i,j,k-1);
+			const double m = d + tau * (f + g + h);
 
-		double e = A.diag(i,j,k) - m;
-		precon(i,j,k) = 1.0 / sqrt(e + DOUBLE_EPSILON);
+			double e = A.diag(i,j,k) - m;
+			precon(i,j,k) = 1.0 / sqrt(e + DOUBLE_EPSILON);
+		}
 	}
 }
 
@@ -975,7 +1025,7 @@ void MACGrid::drawVelocities()
 		if (vel.Length() > 0.0001)
 		{
 			//vel.Normalize(); 
-			vel *= theCellSize/2.0;
+			vel *= gridCellSize/2.0;
 			vel += pos;
 			glColor4f(1.0, 1.0, 0.0, 1.0);
 			glVertex3dv(pos.n);
@@ -1030,21 +1080,21 @@ void MACGrid::drawSmokeCubes(const Camera& c)
 void MACGrid::drawZSheets(bool backToFront)
 {
 	// Draw K Sheets from back to front
-	double back =  (theDim[2])*theCellSize;
-	double top  =  (theDim[1])*theCellSize;
-	double right = (theDim[0])*theCellSize;
+	double back =  (theDim[2])*gridCellSize;
+	double top  =  (theDim[1])*gridCellSize;
+	double right = (theDim[0])*gridCellSize;
 
-	double stepsize = theCellSize*0.25;
+	double stepsize = gridCellSize*0.25;
 
 	double startk = back - stepsize;
 	double endk = 0;
-	double stepk = -theCellSize;
+	double stepk = -gridCellSize;
 
 	if (!backToFront)
 	{
 		startk = 0;
 		endk = back;   
-		stepk = theCellSize;
+		stepk = gridCellSize;
 	}
 
 	for (double k = startk; backToFront? k > endk : k < endk; k += stepk)
@@ -1093,21 +1143,21 @@ void MACGrid::drawZSheets(bool backToFront)
 void MACGrid::drawXSheets(bool backToFront)
 {
 	// Draw K Sheets from back to front
-	double back =  (theDim[2])*theCellSize;
-	double top  =  (theDim[1])*theCellSize;
-	double right = (theDim[0])*theCellSize;
+	double back =  (theDim[2])*gridCellSize;
+	double top  =  (theDim[1])*gridCellSize;
+	double right = (theDim[0])*gridCellSize;
 
-	double stepsize = theCellSize*0.25;
+	double stepsize = gridCellSize*0.25;
 
 	double starti = right - stepsize;
 	double endi = 0;
-	double stepi = -theCellSize;
+	double stepi = -gridCellSize;
 
 	if (!backToFront)
 	{
 		starti = 0;
 		endi = right;   
-		stepi = theCellSize;
+		stepi = gridCellSize;
 	}
 
 	for (double i = starti; backToFront? i > endi : i < endi; i += stepi)
@@ -1159,9 +1209,9 @@ void MACGrid::drawWireGrid()
 	double xstart = 0.0;
 	double ystart = 0.0;
 	double zstart = 0.0;
-	double xend = theDim[0]*theCellSize;
-	double yend = theDim[1]*theCellSize;
-	double zend = theDim[2]*theCellSize;
+	double xend = theDim[0]*gridCellSize;
+	double yend = theDim[1]*gridCellSize;
+	double zend = theDim[2]*gridCellSize;
 
 	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT);
 	glDisable(GL_LIGHTING);
@@ -1170,7 +1220,7 @@ void MACGrid::drawWireGrid()
 	glBegin(GL_LINES);
 	for (int i = 0; i <= theDim[0]; i++)
 	{
-		double x = xstart + i*theCellSize;
+		double x = xstart + i*gridCellSize;
 		glVertex3d(x, ystart, zstart);
 		glVertex3d(x, ystart, zend);
 
@@ -1180,7 +1230,7 @@ void MACGrid::drawWireGrid()
 
 	for (int i = 0; i <= theDim[2]; i++)
 	{
-		double z = zstart + i*theCellSize;
+		double z = zstart + i*gridCellSize;
 		glVertex3d(xstart, ystart, z);
 		glVertex3d(xend, ystart, z);
 
@@ -1210,7 +1260,7 @@ void MACGrid::drawFace(const MACGrid::Cube& cube)
 	glColor4dv(cube.color.n);
 	glPushMatrix();
 		glTranslated(cube.pos[0], cube.pos[1], cube.pos[2]);      
-		glScaled(theCellSize, theCellSize, theCellSize);
+		glScaled(gridCellSize, gridCellSize, gridCellSize);
 		glBegin(GL_QUADS);
 			glNormal3d( 0.0,  0.0, 1.0);
 			glVertex3d(-LEN, -LEN, LEN);
@@ -1226,7 +1276,7 @@ void MACGrid::drawCube(const MACGrid::Cube& cube)
 	glColor4dv(cube.color.n);
 	glPushMatrix();
 		glTranslated(cube.pos[0], cube.pos[1], cube.pos[2]);      
-		glScaled(theCellSize, theCellSize, theCellSize);
+		glScaled(gridCellSize, gridCellSize, gridCellSize);
 		glBegin(GL_QUADS);
 			glNormal3d( 0.0, -1.0,  0.0);
 			glVertex3d(-LEN, -LEN, -LEN);
@@ -1304,13 +1354,13 @@ double MACGrid::getDensity(const vec3& pt)
 
 vec3 MACGrid::getCenter(int i, int j, int k)
 {
-	double xstart = theCellSize/2.0;
-	double ystart = theCellSize/2.0;
-	double zstart = theCellSize/2.0;
+	double xstart = gridCellSize/2.0;
+	double ystart = gridCellSize/2.0;
+	double zstart = gridCellSize/2.0;
 
-	double x = xstart + i*theCellSize;
-	double y = ystart + j*theCellSize;
-	double z = zstart + k*theCellSize;
+	double x = xstart + i*gridCellSize;
+	double y = ystart + j*gridCellSize;
+	double z = zstart + k*gridCellSize;
 	return vec3(x, y, z);
 }
 

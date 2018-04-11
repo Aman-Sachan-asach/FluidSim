@@ -13,19 +13,19 @@
 #ifdef _DEBUG
 const int theDim[3] = {4, 4, 1};
 #else
-const int theDim[3] = {32, 32, 1};
+const int theDim[3] = {12, 12, 1};
 #endif
 
 ////////////////////////////////////////////////////////////
 
 // Simulation Controls
-const int theMillisecondsPerFrame          = 10;
-const double theCellSize                   = 0.5;
-const double theAirDensity                 = 1.0;
-const double theBuoyancyAlpha              = 0.08; // Gravity's effect on the smoke particles.
-const double theBuoyancyBeta               = 0.37; // Buoyancy's effect due to temperature difference.	
-const double theBuoyancyAmbientTemperature = 0.0;  // Ambient temperature.
-const double theVorticityEpsilon 		   = 0.10;
+const int    millisecondsPerFrame       = 10;
+const double gridCellSize               = 0.5;
+const double fluidDensity               = 1.0;
+const double buoyancyAlpha              = 0.08; // Gravity's effect on the smoke particles.
+const double buoyancyBeta               = 0.37; // Buoyancy's effect due to temperature difference.	
+const double buoyancyAmbientTemperature = 0.0;  // Ambient temperature.
+const double vorticityEpsilon 		    = 0.10;
 
 // Used for math operations and constants that aren't included in the C++ standard library.
 const double PI =					3.1415926535897932384626422832795028841971;
@@ -34,7 +34,7 @@ const double TWO_PI =				6.2831853071795864769252867665590057683943;
 const double FOUR_PI =				12.566370614359172953850573533118011536788;
 const double ONE_OVER_FOUR_PI =		0.0795774715459476678844418816862571810172;
 const double E =					2.7182818284590452353602874713526624977572;
-const double DOUBLE_EPSILON =        0.00000000000000000000000000001; //std::numeric_limits<double>::epsilon()
+const double DOUBLE_EPSILON =       0.00000000000000000000000000001; //std::numeric_limits<double>::epsilon()
 
 /////////////////////TODO///////////////////////////////////////
 
