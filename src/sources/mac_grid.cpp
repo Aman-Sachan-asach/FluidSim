@@ -238,7 +238,7 @@ void MACGrid::project(double dt)
 	*/
 
 	// CHECK Section
-	const double constant = dt / (fluidDensity * (gridCellSize * gridCellSize * gridCellSize)); // changed from square to cube
+	const double constant = (fluidDensity * (gridCellSize * gridCellSize))/dt; // Why square not cube
 
 	GridData p = GridData();
 	GridData d = GridData();
@@ -282,11 +282,11 @@ void MACGrid::project(double dt)
 		}
 
 		double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / gridCellSize;
-		d(i,j,k) = -divergence; //d(currentCell) = -divergence;
+		d(i,j,k) = -divergence;
 	}
 
 	// Use PCG method to calculate p
-	preconditionedConjugateGradient(AMatrix, p, d, 150, 0.01);
+	preconditionedConjugateGradient(AMatrix, p, d, 200, 0.01);
 
 	FOR_EACH_CELL 
 	{
@@ -307,61 +307,110 @@ void MACGrid::project(double dt)
 		double pLowZ  = 0.0;
 		double pHighZ = 0.0;
 
-		const double solidBoundaryConstant = (fluidDensity * gridCellSize * gridCellSize) / dt; //squared instead of just gridCellSize
+		const double solidBoundaryConstant = (fluidDensity * gridCellSize) / dt; // why not squared instead of just gridCellSize
 		const double deltaT_By_Density = dt / fluidDensity; // Bottom of page 27 in course notes
 		
 		if (isValidFace(MACGrid::X, i, j, k)) 
 		{
-			if (i == 0) 
-			{
-				pLowX  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
-				pHighX = p(i,j,k);
+			// if (i == 0) 
+			// {
+			// 	pLowX  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			// 	pHighX = p(i,j,k);
+			// }
+			// else if (i >= theDim[MACGrid::X])
+			// {
+			// 	pLowX  = p(i-1,j,k);
+			// 	pHighX = p(i-1,j,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
+			// }
+			// else
+			// {
+			// 	pLowX  = p(i-1,j,k);
+			// 	pHighX = p(i,j,k);
+			// }
+			if (i-1 >= 0) {
+				pLowX = p(i-1,j,k);//p(cellLowX);
 			}
-			else if (i >= theDim[MACGrid::X])
-			{
-				pLowX  = p(i-1,j,k);
-				pHighX = p(i-1,j,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
+
+			if (i < theDim[MACGrid::X]) {
+				pHighX = p(i,j,k);//p(cellHighX);
+			} else {
+				
 			}
-			else
-			{
-				pLowX  = p(i-1,j,k);
-				pHighX = p(i,j,k);
+
+			if (i-1 < 0) {
+				pLowX = pHighX - solidBoundaryConstant * (mU(i,j,k) - 0);
+			}
+
+			if (i >= theDim[MACGrid::X]) {
+				pHighX = pLowX + solidBoundaryConstant * (mU(i,j,k) - 0);
 			}
 		}
 		if (isValidFace(MACGrid::Y, i, j, k)) 
 		{
-			if (j == 0) 
-			{
-				pLowY  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
-				pHighY = p(i,j,k);
+			// if (j == 0) 
+			// {
+			// 	pLowY  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			// 	pHighY = p(i,j,k);
+			// }
+			// else if (j >= theDim[MACGrid::Y])
+			// {
+			// 	pLowY  = p(i,j-1,k);
+			// 	pHighY = p(i,j-1,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
+			// }
+			// else
+			// {
+			// 	pLowY  = p(i,j-1,k);
+			// 	pHighY = p(i,j,k);
+			// }
+
+			if (j-1 >= 0) {
+				pLowY = p(i,j-1,k);//p(cellLowY);
 			}
-			else if (j >= theDim[MACGrid::Y])
-			{
-				pLowY  = p(i,j-1,k);
-				pHighY = p(i,j-1,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
+
+			if (j < theDim[MACGrid::Y]) {
+				pHighY = p(i,j,k);//p(cellHighY);
 			}
-			else
-			{
-				pLowY  = p(i,j-1,k);
-				pHighY = p(i,j,k);
+
+			if (j-1 < 0) {
+				pLowY = pHighY - solidBoundaryConstant * (mV(i,j,k) - 0);
+			}
+
+			if (j >= theDim[MACGrid::Y]) {
+				pHighY = pLowY + solidBoundaryConstant * (mV(i,j,k) - 0);
 			}
 		}
 		if (isValidFace(MACGrid::Z, i, j, k)) 
 		{
-			if (k == 0) 
-			{
-				pLowZ  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
-				pHighZ = p(i,j,k);
+			// if (k == 0) 
+			// {
+			// 	pLowZ  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			// 	pHighZ = p(i,j,k);
+			// }
+			// else if (k >= theDim[MACGrid::Z])
+			// {
+			// 	pLowZ  = p(i,j,k-1);
+			// 	pHighZ = p(i,j,k-1) + solidBoundaryConstant * (mU(i,j,k) - 0);
+			// }
+			// else
+			// {
+			// 	pLowZ  = p(i,j,k-1);
+			// 	pHighZ = p(i,j,k);
+			// }
+
+			if (k-1 >= 0) {
+				pLowZ = p(i,j,k-1);//p(cellLowZ);
 			}
-			else if (k >= theDim[MACGrid::Z])
-			{
-				pLowZ  = p(i,j,k-1);
-				pHighZ = p(i,j,k-1) + solidBoundaryConstant * (mU(i,j,k) - 0);
+
+			if (k < theDim[MACGrid::Z]) {
+				pHighZ = p(i,j,k);//p(cellHighZ);
 			}
-			else
-			{
-				pLowZ  = p(i,j,k-1);
-				pHighZ = p(i,j,k);
+
+			if (k-1 < 0) {
+				pLowZ = pHighZ - solidBoundaryConstant * (mW(i,j,k) - 0);
+			}
+
+			if (k >= theDim[MACGrid::Z]) {
+				pHighZ = pLowZ + solidBoundaryConstant * (mW(i,j,k) - 0);
 			}
 		}
 
