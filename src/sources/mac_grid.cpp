@@ -280,6 +280,47 @@ void MACGrid::setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec
 	}
 }
 
+double MACGrid::calcDivergence( int& i, int& j, int& k )
+{
+	// Construct the vector of divergences d:
+	double vel_LowX  = mU(i,j,k);
+	double vel_HighX = mU(i+1,j,k);
+	double vel_LowY  = mV(i,j,k);
+	double vel_HighY = mV(i,j+1,k);
+	double vel_LowZ  = mW(i,j,k);
+	double vel_HighZ = mW(i,j,k+1);
+
+	// Use 0 for solid boundary velocities:
+	if (i == 0)
+	{
+		vel_LowX = 0;
+	}
+	if (j == 0)
+	{
+		vel_LowY = 0;
+	}
+	if (k == 0) 
+	{
+		vel_LowZ = 0;
+	}
+
+	if (i+1 == theDim[MACGrid::X])
+	{
+		vel_HighX = 0;
+	} 
+	if (j+1 == theDim[MACGrid::Y])
+	{
+		vel_HighY = 0;
+	}
+	if (k+1 == theDim[MACGrid::Z]) 
+	{
+		vel_HighZ = 0;
+	}
+
+	double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / gridCellSize;
+	return divergence;
+}
+
 void MACGrid::project()
 {
 	/*
@@ -317,43 +358,7 @@ void MACGrid::project()
 	// Construct d
 	FOR_EACH_CELL 
 	{
-		// Construct the vector of divergences d:
-		double vel_LowX  = mU(i,j,k);
-		double vel_HighX = mU(i+1,j,k);
-		double vel_LowY  = mV(i,j,k);
-		double vel_HighY = mV(i,j+1,k);
-		double vel_LowZ  = mW(i,j,k);
-		double vel_HighZ = mW(i,j,k+1);
-
-		// Use 0 for solid boundary velocities:
-		if (i == 0)
-		{
-			vel_LowX = 0;
-		}
-		if (j == 0)
-		{
-			vel_LowY = 0;
-		}
-		if (k == 0) 
-		{
-			vel_LowZ = 0;
-		}
-
-		if (i+1 == theDim[MACGrid::X])
-		{
-			vel_HighX = 0;
-		} 
-		if (j+1 == theDim[MACGrid::Y])
-		{
-			vel_HighY = 0;
-		}
-		if (k+1 == theDim[MACGrid::Z]) 
-		{
-			vel_HighZ = 0;
-		}
-
-		double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / gridCellSize;
-		d(i,j,k) = -divergence;
+		d(i,j,k) = -calcDivergence(i,j,k);
 	}
 
 	// Use PCG method to calculate p
@@ -403,25 +408,17 @@ void MACGrid::project()
 	mW = target.mW;
 
 	#ifdef _DEBUG
-	// IMPLEMENT THIS AS A SANITY CHECK: assert (checkDivergence());
-	// TODO: Fix duplicate code:
-	FOR_EACH_CELL 
-	{
-		// Construct the vector of divergences d:
-		double vel_LowX  = mU(i,j,k);
-		double vel_HighX = mU(i+1,j,k);
-		double vel_LowY  = mV(i,j,k);
-		double vel_HighY = mV(i,j+1,k);
-		double vel_LowZ  = mW(i,j,k);
-		double vel_HighZ = mW(i,j,k+1);
-		double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / gridCellSize;
-		if (abs(divergence) > 0.02 ) 
+		// IMPLEMENT THIS AS A SANITY CHECK: assert (checkDivergence());
+		FOR_EACH_CELL 
 		{
-			PrintLine("WARNING: Divergent! ");
-			PrintLine("Divergence: " << divergence);
-			PrintLine("Cell: " << i << ", " << j << ", " << k);
+			double divergence = calcDivergence(i,j,k);
+			if (abs(divergence) > 0.02 ) 
+			{
+				PrintLine("WARNING: Divergent! ");
+				PrintLine("Divergence: " << divergence);
+				PrintLine("Cell: " << i << ", " << j << ", " << k);
+			}
 		}
-	}
 	#endif
 }
 
@@ -456,7 +453,6 @@ void MACGrid::computeVorticityConfinement()
 {
 	// CHECK Section 
 	// Calculate vorticity confinement forces and apply the forces to the current velocity
-	// STARTED.
 
 	// Save these values
 	target.mU = mU;
@@ -468,7 +464,7 @@ void MACGrid::computeVorticityConfinement()
 	GridData tempZ = GridData();
 	GridData tempM = GridData();
 
-	const double One_By_twoDeltaCellSize = (2.0 * gridCellSize);
+	const double One_By_twoDeltaCellSize = 1.0/(2.0 * gridCellSize);
 
 	FOR_EACH_CELL 
 	{
@@ -480,7 +476,6 @@ void MACGrid::computeVorticityConfinement()
 		double vorticityY = b * One_By_twoDeltaCellSize;
 		double vorticityZ = c * One_By_twoDeltaCellSize;
 		vec3 vorticity(vorticityX, vorticityY, vorticityZ);
-		// vorticity.Normalize();
 
 		// Store the vorticity (as separate components) and also store the magnitude of the vorticity:
 		tempX(i,j,k) = vorticityX;
@@ -504,12 +499,12 @@ void MACGrid::computeVorticityConfinement()
 		vec3 fConf = vorticityEpsilon * gridCellSize * (gradient.Cross(vorticity));
 
 		// Spread fConf to the surrounding faces:
-		if (isValidFace(0, i,j,k))   target.mU(i,j,k)   += fConf[0] / 2.0;
-		if (isValidFace(0, i+1,j,k)) target.mU(i+1,j,k) += fConf[0] / 2.0;
-		if (isValidFace(1, i,j,k))   target.mV(i,j,k)   += fConf[1] / 2.0;
-		if (isValidFace(1, i,j+1,k)) target.mV(i,j+1,k) += fConf[1] / 2.0;
-		if (isValidFace(1, i,j,k))   target.mW(i,j,k)   += fConf[2] / 2.0;
-		if (isValidFace(1, i,j,k+1)) target.mW(i,j,k+1) += fConf[2] / 2.0;
+		if (isValidFace(0, i,j,k))   target.mU(i,j,k)   += fConf[0] * 0.5;
+		if (isValidFace(0, i+1,j,k)) target.mU(i+1,j,k) += fConf[0] * 0.5;
+		if (isValidFace(1, i,j,k))   target.mV(i,j,k)   += fConf[1] * 0.5;
+		if (isValidFace(1, i,j+1,k)) target.mV(i,j+1,k) += fConf[1] * 0.5;
+		if (isValidFace(2, i,j,k))   target.mW(i,j,k)   += fConf[2] * 0.5;
+		if (isValidFace(2, i,j,k+1)) target.mW(i,j,k+1) += fConf[2] * 0.5;
 	}
 
 	mU = target.mU;

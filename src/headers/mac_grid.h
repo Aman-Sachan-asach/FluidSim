@@ -61,6 +61,7 @@ protected:
 	vec3 clipToGrid(const vec3& outsidePoint, const vec3& insidePoint);
 
 	void setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec3& pLow, vec3& pHigh );
+	double calcDivergence( int& i, int& j, int& k );
 
 	double getSize(int dimension);
 	int getCellIndex(int i, int j, int k);

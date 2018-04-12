@@ -17,7 +17,10 @@ void SmokeSim::reset()
 void SmokeSim::step()
 {
 	// Step0: Gather user forces
-	mGrid.updateSources();
+	if(mTotalFrameNum<50)
+	{
+		mGrid.updateSources();
+	}	
 
 	// Step1: Calculate new velocities
 	mGrid.advectVelocity();
