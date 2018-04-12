@@ -213,58 +213,69 @@ void MACGrid::setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec
 {
 	if (isValidFace(MACGrid::X, i, j, k)) 
 	{
-		if (i-1 >= 0 && i < theDim[MACGrid::X]) 
+		if (i-1 >= 0) 
 		{
-			pLow[0]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			pLow[0] = p(i-1,j,k);
+		}
+
+		if (i < theDim[MACGrid::X]) 
+		{
 			pHigh[0] = p(i,j,k);
 		}
-		else if (i-1 < 0)
+
+		if (i-1 < 0) 
 		{
-			pLow[0]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
-			pHigh[0] = p(i,j,k);
+			pLow[0] = pHigh[0] - solidBoundaryConstant * (mU(i,j,k) - 0);
 		}
-		else if (i >= theDim[MACGrid::X])
+
+		if (i >= theDim[MACGrid::X]) 
 		{
-			pLow[0]  = p(i-1,j,k);
-			pHigh[0] = p(i-1,j,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
+			pHigh[0] = pLow[0] + solidBoundaryConstant * (mU(i,j,k) - 0);
 		}
+
 	}
-	
 	if (isValidFace(MACGrid::Y, i, j, k)) 
 	{
-		if (j-1 >= 0 && j < theDim[MACGrid::Y]) 
+		if (j-1 >= 0) 
 		{
-			pLow[1]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			pLow[1] = p(i,j-1,k);
+		}
+
+		if (j < theDim[MACGrid::Y]) 
+		{
 			pHigh[1] = p(i,j,k);
 		}
-		else if (j-1 < 0)
+
+		if (j-1 < 0) 
 		{
-			pLow[1]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
-			pHigh[1] = p(i,j,k);
+			pLow[1] = pHigh[1] - solidBoundaryConstant * (mV(i,j,k) - 0);
 		}
-		else if (j >= theDim[MACGrid::Y])
+
+		if (j >= theDim[MACGrid::Y]) 
 		{
-			pLow[1]  = p(i,j-1,k);
-			pHigh[1] = p(i,j-1,k) + solidBoundaryConstant * (mU(i,j,k) - 0);
+			pHigh[1] = pLow[1] + solidBoundaryConstant * (mV(i,j,k) - 0);
 		}
 	}
-	
 	if (isValidFace(MACGrid::Z, i, j, k)) 
 	{
-		if (k-1 >= 0 && k < theDim[MACGrid::Z]) 
+		if (k-1 >= 0) 
 		{
-			pLow[2]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
+			pLow[2] = p(i,j,k-1);
+		}
+
+		if (k < theDim[MACGrid::Z]) 
+		{
 			pHigh[2] = p(i,j,k);
 		}
-		else if (k-1 < 0)
+
+		if (k-1 < 0) 
 		{
-			pLow[2]  = p(i,j,k) - solidBoundaryConstant * (mU(i,j,k) - 0);
-			pHigh[2] = p(i,j,k);
+			pLow[2] = pHigh[2] - solidBoundaryConstant * (mW(i,j,k) - 0);
 		}
-		else if (k >= theDim[MACGrid::Z])
+
+		if (k >= theDim[MACGrid::Z]) 
 		{
-			pLow[2]  = p(i,j,k-1);
-			pHigh[2] = p(i,j,k-1) + solidBoundaryConstant * (mU(i,j,k) - 0);
+			pHigh[2] = pLow[2] + solidBoundaryConstant * (mW(i,j,k) - 0);
 		}
 	}
 }
