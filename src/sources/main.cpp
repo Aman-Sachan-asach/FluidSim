@@ -7,7 +7,6 @@
 #include "../headers/camera.h"
 #include "../headers/timer.h" 
 
-// Geometry and whatnot
 SmokeSim   smokeSim;
 Camera     camera;
 FpsTracker FPS_Tracker;
@@ -24,9 +23,9 @@ int savedHeight = 0;
 
 void initCamera()
 {
-    double w = theDim[0]*gridCellSize;   
-    double h = theDim[1]*gridCellSize;   
-    double d = theDim[2]*gridCellSize;   
+    double w = gridDim[0]*gridCellSize;   
+    double h = gridDim[1]*gridCellSize;   
+    double d = gridDim[2]*gridCellSize;   
     double angle = 0.5 * camera.dfltVfov * PI/180.0;
     double dist;
     if (w > h) dist = w*0.5/std::tan(angle);  // aspect is 1, so i can do this

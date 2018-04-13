@@ -110,7 +110,7 @@ protected:
 	// Validation
 	bool isValidCell(int i, int j, int k);
 	bool isValidFace(int dimension, int i, int j, int k);
-	void checkBorderVelocities(int& i, int& j, int& k);
+	void checkBorderVelocities();
 
 protected:
 	GridDataX mU; // X component of velocity, stored on X faces, size is (dimX+1)*dimY*dimZ

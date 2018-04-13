@@ -8,39 +8,46 @@
 #include <cstdarg>
 #include <iostream>
 #include <sstream>
+#include <limits>
 #include "../external/vec.h"
 
+// #define _DEBUG
+
 #ifdef _DEBUG
-const int theDim[3] = {4, 4, 1};
+constexpr int gridDim[3] = {4, 4, 1};
 #else
-const int theDim[3] = {12, 12, 1};
+constexpr int gridDim[3] = {36,36, 1};
 #endif
 
 ////////////////////////////////////////////////////////////
 
 // Simulation Controls
-const int    millisecondsPerFrame       = 10;
-const double dt                         = 0.04;
+constexpr int    millisecondsPerFrame       = 10;
+constexpr double dt                         = 0.04;
 
-const double gridCellSize               = 0.5;
-const double One_By_gridCellSize        = 1.0/gridCellSize;
+constexpr double gridCellSize               = 0.5;
+constexpr double One_By_gridCellSize        = 1.0/gridCellSize;
 
-const double fluidDensity               = 1.0;
-const double buoyancyAlpha              = 0.08; // Gravity's effect on the smoke particles.
-const double buoyancyBeta               = 0.37; // Buoyancy's effect due to temperature difference.	
-const double buoyancyAmbientTemperature = 0.0;  // Ambient temperature.
-const double vorticityEpsilon 		    = 0.10;
+constexpr double fluidDensity               = 1.0;
+constexpr double buoyancyAlpha              = 0.08; // Gravity's effect on the smoke particles.
+constexpr double buoyancyBeta               = 0.37; // Buoyancy's effect due to temperature difference.	
+constexpr double buoyancyAmbientTemperature = 0.0;  // Ambient temperature.
+constexpr double vorticityEpsilon 		    = 0.10;
 
-const double solidBoundaryConstant = (fluidDensity * gridCellSize) / dt; // why not squared instead of just gridCellSize
+constexpr double solidBoundaryConstant = (fluidDensity * gridCellSize) / dt; // why not squared instead of just gridCellSize
+
+constexpr int sourcePosMin[3] = {17, 0, 0};
+constexpr int sourcePosMax[3] = {19, 2, 0};
+constexpr int sourceLife = 200; //In Frames
 
 // Used for math operations and constants that aren't included in the C++ standard library.
-const double PI =					3.1415926535897932384626422832795028841971;
-const double ONE_OVER_PI =			0.3183098861837906715377675267450287240689;
-const double TWO_PI =				6.2831853071795864769252867665590057683943;
-const double FOUR_PI =				12.566370614359172953850573533118011536788;
-const double ONE_OVER_FOUR_PI =		0.0795774715459476678844418816862571810172;
-const double E =					2.7182818284590452353602874713526624977572;
-const double DOUBLE_EPSILON =       0.00000000000000000000000000001; //std::numeric_limits<double>::epsilon()
+constexpr double PI =					3.1415926535897932384626422832795028841971;
+constexpr double ONE_OVER_PI =			0.3183098861837906715377675267450287240689;
+constexpr double TWO_PI =				6.2831853071795864769252867665590057683943;
+constexpr double FOUR_PI =				12.566370614359172953850573533118011536788;
+constexpr double ONE_OVER_FOUR_PI =		0.0795774715459476678844418816862571810172;
+constexpr double E =					2.7182818284590452353602874713526624977572;
+constexpr double DOUBLE_EPSILON =       std::numeric_limits<double>::epsilon();
 
 /////////////////////TODO///////////////////////////////////////
 

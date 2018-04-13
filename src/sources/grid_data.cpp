@@ -22,16 +22,16 @@ double& GridData::operator()(int i, int j, int k)
 {
 	static double dflt = mDfltValue;  // HACK: Protect against setting the default value
 
-	if( i<0 || i > theDim[0]-1 || 
-		j<0 || j > theDim[1]-1 || 
-		k<0 || k > theDim[2]-1 ) 
+	if( i<0 || i > gridDim[0]-1 || 
+		j<0 || j > gridDim[1]-1 || 
+		k<0 || k > gridDim[2]-1 ) 
 	{
 		return dflt;
 	}
 
 	int col   = i;
-	int row   = k*theDim[0];
-	int stack = j*theDim[0]*theDim[2];
+	int row   = k*gridDim[0];
+	int stack = j*gridDim[0]*gridDim[2];
 
 	return mData[col+row+stack];
 }
@@ -40,16 +40,16 @@ const double GridData::operator()(int i, int j, int k) const
 {
 	static double dflt = mDfltValue;  // HACK: Protect against setting the default value
 
-	if( i<0 || i > theDim[0]-1 || 
-		j<0 || j > theDim[1]-1 || 
-		k<0 || k > theDim[2]-1 ) 
+	if( i<0 || i > gridDim[0]-1 || 
+		j<0 || j > gridDim[1]-1 || 
+		k<0 || k > gridDim[2]-1 ) 
 	{
 		return dflt;
 	}
 
 	int col   = i;
-	int row   = k*theDim[0];
-	int stack = j*theDim[0]*theDim[2];
+	int row   = k*gridDim[0];
+	int stack = j*gridDim[0]*gridDim[2];
 
 	return mData[col+row+stack];
 }
@@ -57,10 +57,10 @@ const double GridData::operator()(int i, int j, int k) const
 void GridData::initialize(double dfltValue)
 {
 	mDfltValue = dfltValue;
-	mMax[0] = gridCellSize*theDim[0];
-	mMax[1] = gridCellSize*theDim[1];
-	mMax[2] = gridCellSize*theDim[2];
-	mData.resize(theDim[0]*theDim[1]*theDim[2], false);
+	mMax[0] = gridCellSize*gridDim[0];
+	mMax[1] = gridCellSize*gridDim[1];
+	mMax[2] = gridCellSize*gridDim[2];
+	mData.resize(gridDim[0]*gridDim[1]*gridDim[2], false);
 	std::fill(mData.begin(), mData.end(), mDfltValue);
 }
 
@@ -166,16 +166,16 @@ double& GridDataX::operator()(int i, int j, int k)
 	static double dflt = 0;
 	dflt = mDfltValue;  // Protect against setting the default value
 
-	if (i < 0 || i > theDim[0]) return dflt;
+	if (i < 0 || i > gridDim[0]) return dflt;
 
 	if (j < 0) j = 0;
-	if (j > theDim[1]-1) j = theDim[1]-1;
+	if (j > gridDim[1]-1) j = gridDim[1]-1;
 	if (k < 0) k = 0;
-	if (k > theDim[2]-1) k = theDim[2]-1;
+	if (k > gridDim[2]-1) k = gridDim[2]-1;
 
 	int col = i;
-	int row = k*(theDim[0]+1);
-	int stack = j*(theDim[0]+1)*theDim[2];
+	int row = k*(gridDim[0]+1);
+	int stack = j*(gridDim[0]+1)*gridDim[2];
 	return mData[stack + row + col];
 }
 
@@ -184,26 +184,26 @@ const double GridDataX::operator()(int i, int j, int k) const
 	static double dflt = 0;
 	dflt = mDfltValue;  // Protect against setting the default value
 
-	if (i < 0 || i > theDim[0]) return dflt;
+	if (i < 0 || i > gridDim[0]) return dflt;
 
 	if (j < 0) j = 0;
-	if (j > theDim[1]-1) j = theDim[1]-1;
+	if (j > gridDim[1]-1) j = gridDim[1]-1;
 	if (k < 0) k = 0;
-	if (k > theDim[2]-1) k = theDim[2]-1;
+	if (k > gridDim[2]-1) k = gridDim[2]-1;
 
 	int col = i;
-	int row = k*(theDim[0]+1);
-	int stack = j*(theDim[0]+1)*theDim[2];
+	int row = k*(gridDim[0]+1);
+	int stack = j*(gridDim[0]+1)*gridDim[2];
 	return mData[stack + row + col];
 }
 
 void GridDataX::initialize(double dfltValue)
 {
 	GridData::initialize(dfltValue);
-	mMax[0] = gridCellSize*(theDim[0]+1);
-	mMax[1] = gridCellSize*theDim[1];
-	mMax[2] = gridCellSize*theDim[2];
-	mData.resize((theDim[0]+1)*theDim[1]*theDim[2], false);
+	mMax[0] = gridCellSize*(gridDim[0]+1);
+	mMax[1] = gridCellSize*gridDim[1];
+	mMax[2] = gridCellSize*gridDim[2];
+	mData.resize((gridDim[0]+1)*gridDim[1]*gridDim[2], false);
 	std::fill(mData.begin(), mData.end(), mDfltValue);
 }
 
@@ -225,16 +225,16 @@ double& GridDataY::operator()(int i, int j, int k)
 	static double dflt = 0;
 	dflt = mDfltValue;  // Protect against setting the default value
 
-	if (j < 0 || j > theDim[1]) return dflt;
+	if (j < 0 || j > gridDim[1]) return dflt;
 
 	if (i < 0) i = 0;
-	if (i > theDim[0]-1) i = theDim[0]-1;
+	if (i > gridDim[0]-1) i = gridDim[0]-1;
 	if (k < 0) k = 0;
-	if (k > theDim[2]-1) k = theDim[2]-1;
+	if (k > gridDim[2]-1) k = gridDim[2]-1;
 
 	int col = i;
-	int row = k*theDim[0];
-	int stack = j*theDim[0]*theDim[2];
+	int row = k*gridDim[0];
+	int stack = j*gridDim[0]*gridDim[2];
 	return mData[stack + row + col];
 }
 
@@ -243,26 +243,26 @@ const double GridDataY::operator()(int i, int j, int k) const
 	static double dflt = 0;
 	dflt = mDfltValue;  // Protect against setting the default value
 
-	if (j < 0 || j > theDim[1]) return dflt;
+	if (j < 0 || j > gridDim[1]) return dflt;
 
 	if (i < 0) i = 0;
-	if (i > theDim[0]-1) i = theDim[0]-1;
+	if (i > gridDim[0]-1) i = gridDim[0]-1;
 	if (k < 0) k = 0;
-	if (k > theDim[2]-1) k = theDim[2]-1;
+	if (k > gridDim[2]-1) k = gridDim[2]-1;
 
 	int col = i;
-	int row = k*theDim[0];
-	int stack = j*theDim[0]*theDim[2];
+	int row = k*gridDim[0];
+	int stack = j*gridDim[0]*gridDim[2];
 	return mData[stack + row + col];
 }
 
 void GridDataY::initialize(double dfltValue)
 {
 	GridData::initialize(dfltValue);
-	mMax[0] = gridCellSize*theDim[0];
-	mMax[1] = gridCellSize*(theDim[1]+1);
-	mMax[2] = gridCellSize*theDim[2];
-	mData.resize(theDim[0]*(theDim[1]+1)*theDim[2], false);
+	mMax[0] = gridCellSize*gridDim[0];
+	mMax[1] = gridCellSize*(gridDim[1]+1);
+	mMax[2] = gridCellSize*gridDim[2];
+	mData.resize(gridDim[0]*(gridDim[1]+1)*gridDim[2], false);
 	std::fill(mData.begin(), mData.end(), mDfltValue);
 }
 
@@ -284,16 +284,16 @@ double& GridDataZ::operator()(int i, int j, int k)
 	static double dflt = 0;
 	dflt = mDfltValue;  // Protect against setting the default value
 
-	if (k < 0 || k > theDim[2]) return dflt;
+	if (k < 0 || k > gridDim[2]) return dflt;
 
 	if (i < 0) i = 0;
-	if (i > theDim[0]-1) i = theDim[0]-1;
+	if (i > gridDim[0]-1) i = gridDim[0]-1;
 	if (j < 0) j = 0;
-	if (j > theDim[1]-1) j = theDim[1]-1;
+	if (j > gridDim[1]-1) j = gridDim[1]-1;
 
 	int col = i;
-	int row = k*theDim[0];
-	int stack = j*theDim[0]*(theDim[2]+1);
+	int row = k*gridDim[0];
+	int stack = j*gridDim[0]*(gridDim[2]+1);
 
 	return mData[stack + row + col];
 }
@@ -303,16 +303,16 @@ const double GridDataZ::operator()(int i, int j, int k) const
 	static double dflt = 0;
 	dflt = mDfltValue;  // Protect against setting the default value
 
-	if (k < 0 || k > theDim[2]) return dflt;
+	if (k < 0 || k > gridDim[2]) return dflt;
 
 	if (i < 0) i = 0;
-	if (i > theDim[0]-1) i = theDim[0]-1;
+	if (i > gridDim[0]-1) i = gridDim[0]-1;
 	if (j < 0) j = 0;
-	if (j > theDim[1]-1) j = theDim[1]-1;
+	if (j > gridDim[1]-1) j = gridDim[1]-1;
 
 	int col = i;
-	int row = k*theDim[0];
-	int stack = j*theDim[0]*(theDim[2]+1);
+	int row = k*gridDim[0];
+	int stack = j*gridDim[0]*(gridDim[2]+1);
 
 	return mData[stack + row + col];
 }
@@ -320,10 +320,10 @@ const double GridDataZ::operator()(int i, int j, int k) const
 void GridDataZ::initialize(double dfltValue)
 {
 	GridData::initialize(dfltValue);
-	mMax[0] = gridCellSize*theDim[0];
-	mMax[1] = gridCellSize*theDim[1];
-	mMax[2] = gridCellSize*(theDim[2]+1);
-	mData.resize(theDim[0]*theDim[1]*(theDim[2]+1), false);
+	mMax[0] = gridCellSize*gridDim[0];
+	mMax[1] = gridCellSize*gridDim[1];
+	mMax[2] = gridCellSize*(gridDim[2]+1);
+	mData.resize(gridDim[0]*gridDim[1]*(gridDim[2]+1), false);
 	std::fill(mData.begin(), mData.end(), mDfltValue);
 }
 

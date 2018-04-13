@@ -8,19 +8,19 @@ MACGrid::RenderMode MACGrid::theRenderMode = SHEETS;
 bool MACGrid::theDisplayVel = false;//true
 
 #define FOR_EACH_CELL \
-	for(int k = 0; k < theDim[MACGrid::Z]; k++)  \
-		for(int j = 0; j < theDim[MACGrid::Y]; j++) \
-			for(int i = 0; i < theDim[MACGrid::X]; i++) 
+	for(int k = 0; k < gridDim[MACGrid::Z]; k++)  \
+		for(int j = 0; j < gridDim[MACGrid::Y]; j++) \
+			for(int i = 0; i < gridDim[MACGrid::X]; i++) 
 
 #define FOR_EACH_CELL_REVERSE \
-	for(int k = theDim[MACGrid::Z] - 1; k >= 0; k--)  \
-		for(int j = theDim[MACGrid::Y] - 1; j >= 0; j--) \
-			for(int i = theDim[MACGrid::X] - 1; i >= 0; i--) 
+	for(int k = gridDim[MACGrid::Z] - 1; k >= 0; k--)  \
+		for(int j = gridDim[MACGrid::Y] - 1; j >= 0; j--) \
+			for(int i = gridDim[MACGrid::X] - 1; i >= 0; i--) 
 
 #define FOR_EACH_FACE \
-	for(int k = 0; k < theDim[MACGrid::Z]+1; k++) \
-		for(int j = 0; j < theDim[MACGrid::Y]+1; j++) \
-			for(int i = 0; i < theDim[MACGrid::X]+1; i++) 
+	for(int k = 0; k < gridDim[MACGrid::Z]+1; k++) \
+		for(int j = 0; j < gridDim[MACGrid::Y]+1; j++) \
+			for(int i = 0; i < gridDim[MACGrid::X]+1; i++) 
 
 MACGrid::MACGrid()
 {
@@ -64,9 +64,9 @@ void MACGrid::reset()
 void MACGrid::updateSources()
 {
 	// Set initial values for density, temperature, velocity
-	for(int i=6; i<12;i++)
+	for(int i=sourcePosMin[0]; i<sourcePosMax[0];i++)
 	{
-		for(int j=0; j<5; j++)
+		for(int j=sourcePosMin[1]; j<sourcePosMax[1]; j++)
 		{
 			mV(i,j+1,0) = 2.0;
 			mV(i,j+2,0) = 2.0;
@@ -77,9 +77,9 @@ void MACGrid::updateSources()
 	}
 
 	// Refresh particles in source.
-	for(int i=6; i<12; i++) 
+	for(int i=sourcePosMin[0]; i<sourcePosMax[0]; i++)
 	{
-		for (int j = 0; j < 5; j++) 
+		for(int j=sourcePosMin[1]; j<sourcePosMax[1]; j++)
 		{
 			for (int k = 0; k <= 0; k++) 
 			{
@@ -218,7 +218,7 @@ void MACGrid::setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec
 			pLow[0] = p(i-1,j,k);
 		}
 
-		if (i < theDim[MACGrid::X]) 
+		if (i < gridDim[MACGrid::X]) 
 		{
 			pHigh[0] = p(i,j,k);
 		}
@@ -228,7 +228,7 @@ void MACGrid::setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec
 			pLow[0] = pHigh[0] - solidBoundaryConstant * (mU(i,j,k) - 0);
 		}
 
-		if (i >= theDim[MACGrid::X]) 
+		if (i >= gridDim[MACGrid::X]) 
 		{
 			pHigh[0] = pLow[0] + solidBoundaryConstant * (mU(i,j,k) - 0);
 		}
@@ -241,7 +241,7 @@ void MACGrid::setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec
 			pLow[1] = p(i,j-1,k);
 		}
 
-		if (j < theDim[MACGrid::Y]) 
+		if (j < gridDim[MACGrid::Y]) 
 		{
 			pHigh[1] = p(i,j,k);
 		}
@@ -251,7 +251,7 @@ void MACGrid::setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec
 			pLow[1] = pHigh[1] - solidBoundaryConstant * (mV(i,j,k) - 0);
 		}
 
-		if (j >= theDim[MACGrid::Y]) 
+		if (j >= gridDim[MACGrid::Y]) 
 		{
 			pHigh[1] = pLow[1] + solidBoundaryConstant * (mV(i,j,k) - 0);
 		}
@@ -263,7 +263,7 @@ void MACGrid::setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec
 			pLow[2] = p(i,j,k-1);
 		}
 
-		if (k < theDim[MACGrid::Z]) 
+		if (k < gridDim[MACGrid::Z]) 
 		{
 			pHigh[2] = p(i,j,k);
 		}
@@ -273,7 +273,7 @@ void MACGrid::setPressureHighLow( int& i, int& j, int& k, const GridData& p, vec
 			pLow[2] = pHigh[2] - solidBoundaryConstant * (mW(i,j,k) - 0);
 		}
 
-		if (k >= theDim[MACGrid::Z]) 
+		if (k >= gridDim[MACGrid::Z]) 
 		{
 			pHigh[2] = pLow[2] + solidBoundaryConstant * (mW(i,j,k) - 0);
 		}
@@ -293,32 +293,31 @@ double MACGrid::calcDivergence( int& i, int& j, int& k )
 	// Use 0 for solid boundary velocities:
 	if (i == 0)
 	{
-		vel_LowX = 0;
+		vel_LowX = 0.0;
 	}
 	if (j == 0)
 	{
-		vel_LowY = 0;
+		vel_LowY = 0.0;
 	}
 	if (k == 0) 
 	{
-		vel_LowZ = 0;
+		vel_LowZ = 0.0;
 	}
 
-	if (i+1 == theDim[MACGrid::X])
+	if (i+1 == gridDim[MACGrid::X])
 	{
-		vel_HighX = 0;
+		vel_HighX = 0.0;
 	} 
-	if (j+1 == theDim[MACGrid::Y])
+	if (j+1 == gridDim[MACGrid::Y])
 	{
-		vel_HighY = 0;
+		vel_HighY = 0.0;
 	}
-	if (k+1 == theDim[MACGrid::Z]) 
+	if (k+1 == gridDim[MACGrid::Z]) 
 	{
-		vel_HighZ = 0;
+		vel_HighZ = 0.0;
 	}
 
-	double divergence = ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / gridCellSize;
-	return divergence;
+	return ((vel_HighX - vel_LowX) + (vel_HighY - vel_LowY) + (vel_HighZ - vel_LowZ)) / gridCellSize;
 }
 
 void MACGrid::project()
@@ -398,7 +397,7 @@ void MACGrid::project()
 	}
 
 	#ifdef _DEBUG
-		checkBorderVelocities(i, j, k);
+		checkBorderVelocities();
 	#endif
 
 	// Then save the result to our object
@@ -409,14 +408,19 @@ void MACGrid::project()
 
 	#ifdef _DEBUG
 		// IMPLEMENT THIS AS A SANITY CHECK: assert (checkDivergence());
+		std::ostringstream num_str1;
+		std::ostringstream num_str2;
+
 		FOR_EACH_CELL 
 		{
 			double divergence = calcDivergence(i,j,k);
 			if (abs(divergence) > 0.02 ) 
 			{
 				PrintLine("WARNING: Divergent! ");
-				PrintLine("Divergence: " << divergence);
-				PrintLine("Cell: " << i << ", " << j << ", " << k);
+				num_str1 << "Divergence: " << divergence << "\n";
+				PrintLine( num_str1.str() );
+				num_str2 << "Cell: " << i << ", " << j << ", " << k;
+				PrintLine( num_str2.str() );
 			}
 		}
 	#endif
@@ -575,17 +579,17 @@ vec3 MACGrid::clipToGrid(const vec3& outsidePoint, const vec3& insidePoint)
 
 double MACGrid::getSize(int dimension) 
 {
-	return theDim[dimension] * gridCellSize;
+	return gridDim[dimension] * gridCellSize;
 }
 
 int MACGrid::getCellIndex(int i, int j, int k)
 {
-	return i + j * theDim[MACGrid::X] + k * theDim[MACGrid::Y] * theDim[MACGrid::X];
+	return i + j * gridDim[MACGrid::X] + k * gridDim[MACGrid::Y] * gridDim[MACGrid::X];
 }
 
 int MACGrid::getNumberOfCells()
 {
-	return theDim[MACGrid::X] * theDim[MACGrid::Y] * theDim[MACGrid::Z];
+	return gridDim[MACGrid::X] * gridDim[MACGrid::Y] * gridDim[MACGrid::Z];
 }
 
 vec3 MACGrid::getFacePosition(int dimension, int i, int j, int k)
@@ -620,7 +624,7 @@ void MACGrid::calculateAMatrix()
 			AMatrix.plusI(i-1,j,k) = -1;
 			numFluidNeighbors++;
 		}
-		if (i+1 < theDim[MACGrid::X]) 
+		if (i+1 < gridDim[MACGrid::X]) 
 		{
 			AMatrix.plusI(i,j,k) = -1;
 			numFluidNeighbors++;
@@ -630,7 +634,7 @@ void MACGrid::calculateAMatrix()
 			AMatrix.plusJ(i,j-1,k) = -1;
 			numFluidNeighbors++;
 		}
-		if (j+1 < theDim[MACGrid::Y]) 
+		if (j+1 < gridDim[MACGrid::Y]) 
 		{
 			AMatrix.plusJ(i,j,k) = -1;
 			numFluidNeighbors++;
@@ -640,7 +644,7 @@ void MACGrid::calculateAMatrix()
 			AMatrix.plusK(i,j,k-1) = -1;
 			numFluidNeighbors++;
 		}
-		if (k+1 < theDim[MACGrid::Z]) 
+		if (k+1 < gridDim[MACGrid::Z]) 
 		{
 			AMatrix.plusK(i,j,k) = -1;
 			numFluidNeighbors++;
@@ -1023,9 +1027,9 @@ void MACGrid::drawSmokeCubes(const Camera& c)
 void MACGrid::drawZSheets(bool backToFront)
 {
 	// Draw K Sheets from back to front
-	double back =  (theDim[2])*gridCellSize;
-	double top  =  (theDim[1])*gridCellSize;
-	double right = (theDim[0])*gridCellSize;
+	double back =  (gridDim[2])*gridCellSize;
+	double top  =  (gridDim[1])*gridCellSize;
+	double right = (gridDim[0])*gridCellSize;
 
 	double stepsize = gridCellSize*0.25;
 
@@ -1086,9 +1090,9 @@ void MACGrid::drawZSheets(bool backToFront)
 void MACGrid::drawXSheets(bool backToFront)
 {
 	// Draw K Sheets from back to front
-	double back =  (theDim[2])*gridCellSize;
-	double top  =  (theDim[1])*gridCellSize;
-	double right = (theDim[0])*gridCellSize;
+	double back =  (gridDim[2])*gridCellSize;
+	double top  =  (gridDim[1])*gridCellSize;
+	double right = (gridDim[0])*gridCellSize;
 
 	double stepsize = gridCellSize*0.25;
 
@@ -1152,16 +1156,16 @@ void MACGrid::drawWireGrid()
 	double xstart = 0.0;
 	double ystart = 0.0;
 	double zstart = 0.0;
-	double xend = theDim[0]*gridCellSize;
-	double yend = theDim[1]*gridCellSize;
-	double zend = theDim[2]*gridCellSize;
+	double xend = gridDim[0]*gridCellSize;
+	double yend = gridDim[1]*gridCellSize;
+	double zend = gridDim[2]*gridCellSize;
 
 	glPushAttrib(GL_LIGHTING_BIT | GL_LINE_BIT);
 	glDisable(GL_LIGHTING);
 	glColor3f(0.25, 0.25, 0.25);
 
 	glBegin(GL_LINES);
-	for (int i = 0; i <= theDim[0]; i++)
+	for (int i = 0; i <= gridDim[0]; i++)
 	{
 		double x = xstart + i*gridCellSize;
 		glVertex3d(x, ystart, zstart);
@@ -1171,7 +1175,7 @@ void MACGrid::drawWireGrid()
 		glVertex3d(x, yend, zend);
 	}
 
-	for (int i = 0; i <= theDim[2]; i++)
+	for (int i = 0; i <= gridDim[2]; i++)
 	{
 		double z = zstart + i*gridCellSize;
 		glVertex3d(xstart, ystart, z);
@@ -1313,7 +1317,7 @@ vec3 MACGrid::getCenter(int i, int j, int k)
 
 bool MACGrid::isValidCell(int i, int j, int k)
 {
-	if (i >= theDim[MACGrid::X] || j >= theDim[MACGrid::Y] || k >= theDim[MACGrid::Z]) {
+	if (i >= gridDim[MACGrid::X] || j >= gridDim[MACGrid::Y] || k >= gridDim[MACGrid::Z]) {
 		return false;
 	}
 
@@ -1328,21 +1332,21 @@ bool MACGrid::isValidFace(int dimension, int i, int j, int k)
 {
 	if (dimension == 0) 
 	{
-		if (i > theDim[MACGrid::X] || j >= theDim[MACGrid::Y] || k >= theDim[MACGrid::Z]) 
+		if (i > gridDim[MACGrid::X] || j >= gridDim[MACGrid::Y] || k >= gridDim[MACGrid::Z]) 
 		{
 			return false;
 		}
 	} 
 	else if (dimension == 1) 
 	{
-		if (i >= theDim[MACGrid::X] || j > theDim[MACGrid::Y] || k >= theDim[MACGrid::Z]) 
+		if (i >= gridDim[MACGrid::X] || j > gridDim[MACGrid::Y] || k >= gridDim[MACGrid::Z]) 
 		{
 			return false;
 		}
 	} 
 	else if (dimension == 2) 
 	{
-		if (i >= theDim[MACGrid::X] || j >= theDim[MACGrid::Y] || k > theDim[MACGrid::Z]) 
+		if (i >= gridDim[MACGrid::X] || j >= gridDim[MACGrid::Y] || k > gridDim[MACGrid::Z]) 
 		{
 			return false;
 		}
@@ -1356,7 +1360,7 @@ bool MACGrid::isValidFace(int dimension, int i, int j, int k)
 	return true;
 }
 
-void MACGrid::checkBorderVelocities(int& i, int& j, int& k)
+void MACGrid::checkBorderVelocities()
 {
 	std::ostringstream num_str;
 
@@ -1374,7 +1378,7 @@ void MACGrid::checkBorderVelocities(int& i, int& j, int& k)
 				}
 			}
 
-			if (i == theDim[MACGrid::X]) 
+			if (i == gridDim[MACGrid::X]) 
 			{
 				if (abs(target.mU(i,j,k)) > 0.0000001) 
 				{
@@ -1396,7 +1400,7 @@ void MACGrid::checkBorderVelocities(int& i, int& j, int& k)
 				}
 			}
 
-			if (j == theDim[MACGrid::Y]) 
+			if (j == gridDim[MACGrid::Y]) 
 			{
 				if (abs(target.mV(i,j,k)) > 0.0000001) 
 				{
@@ -1418,7 +1422,7 @@ void MACGrid::checkBorderVelocities(int& i, int& j, int& k)
 				}
 			}
 
-			if (k == theDim[MACGrid::Z]) 
+			if (k == gridDim[MACGrid::Z]) 
 			{
 				if (abs(target.mW(i,j,k)) > 0.0000001) 
 				{
