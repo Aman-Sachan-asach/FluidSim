@@ -17,7 +17,7 @@ void SmokeSim::reset()
 void SmokeSim::step()
 {
 	// Step0: Gather user forces
-	if(mTotalFrameNum<sourceActiveForNFrames)
+	if(mTotalFrameNum<sourceLife)
 	{
 		mGrid.updateSources();
 	}	

@@ -25,13 +25,13 @@ constexpr int gridDim[3] = {36,36, 1};
 constexpr int    millisecondsPerFrame       = 10;
 constexpr double dt                         = 0.04;
 
-constexpr double gridCellSize               = 0.5;
+constexpr double gridCellSize               = 0.2;
 constexpr double One_By_gridCellSize        = 1.0/gridCellSize;
 
 constexpr double fluidDensity               = 1.0;
 constexpr double buoyancyAlpha              = 0.08; // Gravity's effect on the smoke particles.
 constexpr double buoyancyBeta               = 0.37; // Buoyancy's effect due to temperature difference.	
-constexpr double buoyancyAmbientTemperature = 0.0;  // Ambient temperature.
+constexpr double ambientTemperature         = 0.0;  // Ambient temperature.
 constexpr double vorticityEpsilon 		    = 0.10;
 
 constexpr double solidBoundaryConstant = (fluidDensity * gridCellSize) / dt; // why not squared instead of just gridCellSize
@@ -49,7 +49,7 @@ constexpr double ONE_OVER_FOUR_PI =		0.0795774715459476678844418816862571810172;
 constexpr double E =					2.7182818284590452353602874713526624977572;
 constexpr double DOUBLE_EPSILON =       std::numeric_limits<double>::epsilon();
 
-/////////////////////TODO///////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 
 // Print Utilities
 template <typename T>

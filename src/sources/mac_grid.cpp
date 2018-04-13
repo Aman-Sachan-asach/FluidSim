@@ -112,9 +112,9 @@ void MACGrid::updateSources()
 		position to its new position (think diffusion).
 		-- "currState = prevState"
 	
-	// TODO come back and update this bit (specifically where the averaging happens)
 	Because Advection deals with imaginary particles and not actual particles, when we retrieve the 'prevState'
-	we get an averaged out value because every timestep we average quantities
+	we get an averaged out value because every timestep we average quantities during the projection face when we
+	calculate the velocity at the center of the cell
 */ 
 
 void MACGrid::advectVelocity()
@@ -436,8 +436,6 @@ void MACGrid::computeBouyancy()
 	// Resource: At the end of section 2, in the Paper titled Visual Simulation of Smoke.
 	// (http://physbam.stanford.edu/~fedkiw/papers/stanford2001-01.pdf)
 	// Calculate bouyancy and store in target
-
-	const double ambientTemperature = 0.0;
 
 	FOR_EACH_FACE 
 	{
