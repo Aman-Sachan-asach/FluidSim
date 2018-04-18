@@ -64,34 +64,58 @@ void MACGrid::reset()
 void MACGrid::updateSources()
 {
 	// Set initial values for density, temperature, velocity
-	for(int i=sourcePosMin[0]; i<sourcePosMax[0];i++)
+	// Sources shooting smoke Horizontally
+	for(int sourceIndex=0; sourceIndex<2; sourceIndex++)
 	{
-		for(int j=sourcePosMin[1]; j<sourcePosMax[1]; j++)
+		for(int i=sourcePosMin[sourceIndex][0]; i<sourcePosMax[sourceIndex][0]; i++)
 		{
-			mV(i,j+1,0) = 2.0;
-			mV(i,j+2,0) = 2.0;
+			for(int j=sourcePosMin[sourceIndex][1]; j<sourcePosMax[sourceIndex][1]; j++)
+			{
+				mU(i+(sign[sourceIndex]*1),j,0) = sourceVelocity[sourceIndex][0];
+				mU(i+(sign[sourceIndex]*2),j,0) = sourceVelocity[sourceIndex][0];
 
-			mD(i,j  ,0) = 1.0;
+				// mV(i,j+1,0) = sourceVelocity[sourceIndex][1];
+				// mV(i,j+2,0) = sourceVelocity[sourceIndex][1];
+
+				mD(i,j  ,0) = fluidDensity;
+				mT(i,j  ,0) = 1.0;
+			}
+		}
+	}
+
+	// Sources shooting smoke Vertically
+	for(int i=sourcePosMin[2][0]; i<sourcePosMax[2][0]; i++)
+	{
+		for(int j=sourcePosMin[2][1]; j<sourcePosMax[2][1]; j++)
+		{
+			mV(i,j-1,0) = sourceVelocity[2][1];
+			mV(i,j-2,0) = sourceVelocity[2][1];
+
+			mD(i,j  ,0) = fluidDensity;
 			mT(i,j  ,0) = 1.0;
 		}
 	}
 
+
 	// Refresh particles in source.
-	for(int i=sourcePosMin[0]; i<sourcePosMax[0]; i++)
+	for(int sourceIndex=0; sourceIndex<numSources; sourceIndex++)
 	{
-		for(int j=sourcePosMin[1]; j<sourcePosMax[1]; j++)
+		for(int i=sourcePosMin[sourceIndex][0]; i<sourcePosMax[sourceIndex][0]; i++)
 		{
-			for (int k = 0; k <= 0; k++) 
+			for(int j=sourcePosMin[sourceIndex][1]; j<sourcePosMax[sourceIndex][1]; j++)
 			{
-				vec3 cell_center(gridCellSize*(i+0.5), gridCellSize*(j+0.5), gridCellSize*(k+0.5));
-				for(int p=0; p<10; p++) 
+				for (int k = 0; k <= 0; k++) 
 				{
-					double a = ((float) rand() / RAND_MAX - 0.5) * gridCellSize;
-					double b = ((float) rand() / RAND_MAX - 0.5) * gridCellSize;
-					double c = ((float) rand() / RAND_MAX - 0.5) * gridCellSize;
-					vec3 shift(a, b, c);
-					vec3 xp = cell_center + shift;
-					rendering_particles.push_back(xp);
+					vec3 cell_center(gridCellSize*(i+0.5), gridCellSize*(j+0.5), gridCellSize*(k+0.5));
+					for(int p=0; p<10; p++) 
+					{
+						double a = ((float) rand() / RAND_MAX - 0.5) * gridCellSize;
+						double b = ((float) rand() / RAND_MAX - 0.5) * gridCellSize;
+						double c = ((float) rand() / RAND_MAX - 0.5) * gridCellSize;
+						vec3 shift(a, b, c);
+						vec3 xp = cell_center + shift;
+						rendering_particles.push_back(xp);
+					}
 				}
 			}
 		}
