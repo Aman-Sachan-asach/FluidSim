@@ -30,7 +30,7 @@ void initCamera()
     double dist;
     if (w > h) dist = w*0.5/std::tan(angle);  // aspect is 1, so i can do this
     else dist = h*0.5/std::tan(angle);
-    camera.dfltEye.set(w*0.5, h*0.5, -(dist+d*0.5));
+    camera.dfltEye.set(w*0.5, h*0.5, -(dist+d*0.5)*0.6);
     camera.dfltLook.set(w*0.5, h*0.5, 0.0);
     camera.reset();
 }

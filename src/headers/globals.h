@@ -13,9 +13,9 @@
 
 // #define _DEBUG
 
-constexpr int gridRes = 64;
-constexpr int gridHalfRes = 32;
-constexpr int gridDim[3] = {gridRes,gridRes, 1};
+constexpr int gridRes = 32;
+constexpr int gridHalfRes = 16;
+constexpr int gridDim[3] = {gridRes,gridRes,gridRes};
 
 ////////////////////////////////////////////////////////////
 
@@ -30,22 +30,22 @@ constexpr double fluidDensity               = 1.0;
 constexpr double buoyancyAlpha              = 0.08; // Gravity's effect on the smoke particles.
 constexpr double buoyancyBeta               = 0.37; // Buoyancy's effect due to temperature difference.	
 constexpr double ambientTemperature         = 0.0;  // Ambient temperature.
-constexpr double vorticityEpsilon 		    = 0.35;
+constexpr double vorticityEpsilon 		    = 0.5;
 
 constexpr double solidBoundaryConstant = (fluidDensity * gridCellSize) / dt; // why not squared instead of just gridCellSize
 
 // Smoke Sources
 constexpr int    numSources = 3;
 constexpr int    sourceLife = 200; //In Frames
-constexpr int    sourcePosMin[numSources][3]   = { {0, 0, 0}, {gridRes-4, 0, 0}, {gridHalfRes-2, gridRes-4, 0}};
-constexpr int    sourcePosMax[numSources][3]   = { {4, 4, 0}, {gridRes,   4, 0}, {gridHalfRes+2, gridRes,   0}};
+constexpr int    sourcePosMin[numSources][3]   = {{0, 0, gridHalfRes-1}, {gridRes-4, 0, gridHalfRes-1}, {gridHalfRes-2, 0, gridHalfRes-1}};
+constexpr int    sourcePosMax[numSources][3]   = {{4, 4, gridHalfRes+1}, {gridRes,   4, gridHalfRes+1}, {gridHalfRes+2, 4, gridHalfRes+1}};
 
 constexpr int    sign[2] = {1,-1};
-constexpr double sourceVelocity[numSources][3] = {{10.0, 10.0, 0}, {-10.0, 10.0, 0}, {0.0, -10.0, 0}};
+constexpr double sourceVelocity[numSources][3] = {{10.0, 10.0, 0}, {-10.0, 10.0, 0}, {0.0, 10.0, 0}};
 
 // More Boundaries
-constexpr ObstacleAABBMin = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
-constexpr ObstacleAABBMax = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+constexpr int ObstacleAABBMin[5][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
+constexpr int ObstacleAABBMax[5][3] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
 
 // Used for math operations and constants that aren't included in the C++ standard library.
 constexpr double PI =					3.1415926535897932384626422832795028841971;
